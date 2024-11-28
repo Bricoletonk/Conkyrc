@@ -1,0 +1,65 @@
+
+conky.config = {
+  background = true,
+    own_window = true,
+    own_window_class = 'Conky',
+    own_window_transparent = false,
+    own_window_type = 'desktop',
+    own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',
+    own_window_argb_visual = true,
+    own_window_argb_value = 0,
+    double_buffer = true,
+    no_buffers = true,
+    use_spacer = 'none',
+    use_xft = true,
+    xftalpha = 1,
+    font = 'Roboto:size=10',
+    update_interval = 1,
+    uppercase = false,
+    override_utf8_locale = true,
+    stippled_borders = 1,
+    border_width = 5,
+    draw_borders = false,
+    draw_graph_borders = true,
+    draw_outline = false,
+    draw_shades = false,
+    show_graph_scale = true,
+    show_graph_range = true,
+    alignment = 'top_left',
+    hddtemp_port = 7634,
+    hddtemp_host = '127.0.0.1',
+    gap_x = 10,
+    gap_y = 35,
+    net_avg_samples = 1,
+    cpu_avg_samples = 6,
+    short_units = true,
+    pad_percents = 2,
+    text_buffer_size = 2048,
+    out_to_console = false,
+    out_to_stderr = false,
+    extra_newline = false,
+    color1 = 'yellow',
+    color2 = 'green',
+    color3 = 'red',
+    }
+conky.text = [[
+${color1}${execi 86400 lsb_release -si}: ${color2}${execi 86400 lsb_release -sr} ${execi 86400 lsb_release -sc} ${goto 160}${color1}Kernel: ${alignr}${color2}$kernel
+${color1}Uptime:${color2} $uptime_short ${goto 160}${color1}IP publique: ${alignr}${color2}${texeci 3600 wget http://checkip.dyndns.org -O - -o /dev/null | cut -d: -f 2 | cut -d \< -f 1}
+${color1}Màj dispo:${color2} ${texeci 1800 echo $(($(apt list --upgradable 2>/dev/null | wc -l) - 1))}${goto 160}${color1}Reboot requis : ${alignr}${color2}${execi 1800 test -e /var/run/reboot-required && echo oui || echo non}
+
+${color1}CPU: ${goto 50}${color2}${cpubar 8}
+${cpugraph 30, ffa700 008744 s}
+${color1}RAM: ${goto 50}${color2}$mem ${goto 105}| $memperc% ${color2}${goto 160}$membar
+#sys/class/hwmon/...
+${color1}SSD:${goto 50}${color2}${hwmon 0 temp 1}° ${goto 95}${color1}GPU: ${color2}${execi 60 nvidia-settings -query [gpu:0]/GPUCoreTemp -t}° ${goto 185}${color1}CPU: ${color2}${hwmon 1 temp 1}°${goto 280}${color1}FAN: ${alignr}${color2}${hwmon fan} tr/m
+
+${color1}IP Eth.: ${color2}${addr eno1}${goto 175}${color1}DL:${color2} ${downspeedf eno1}k/s ${goto 280}${color1}UP: ${alignr}${color3} ${upspeedf eno1}k/s
+${color2}${downspeedgraph eno1 30,360 ffa700 008744 s}
+${color1}SSD :${goto 55}${color2}${fs_free} ${goto 105}| ${fs_free_perc}%${goto 160}${fs_bar}
+${color1}Data :${goto 55}${color2}${fs_free /home} ${goto 105}| ${fs_free_perc /home}%${goto 160}${fs_bar /home}
+#${color1}Bckp :${goto 55}${color2}${fs_free /run/timeshift/backup} ${goto 105}| ${fs_free_perc /run/timeshift/backup}%${goto 160}${fs_bar /run/timeshift/backup}
+${color1}UTC :${goto 55}${color2}${utime}
+${color1}Météo: ${font monospace:size=10}
+${color2}${texeci 3600 curl -s 'wttr.in/Bruxelles?qT0&lang=fr' | head -7}
+${texeci 3600 curl -s 'wttr.in/Colmar?qT0&lang=fr' | head -7}
+]]

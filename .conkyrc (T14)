@@ -41,6 +41,8 @@ conky.config = {
     color1 = 'white',
     color2 = 'green',
     color3 = 'red',
+    color4 = 'yellow',
+
     }
 conky.text = [[
 ${color1}${execi 86400 lsb_release -si}: ${color2}${execi 86400 lsb_release -sr} ${execi 86400 lsb_release -sc} ${goto 160}${color1}Kernel: ${alignr}${color2}$kernel
@@ -51,11 +53,12 @@ ${color1}CPU: ${goto 50}${color2}${cpubar 8}
 ${cpugraph 30, ffa700 008744 s}
 ${color1}RAM: ${goto 50}${color2}$mem ${goto 95}| $memperc% ${color2}${goto 170}$membar
 #sys/class/hwmon/...
-${color1}CPU: ${color2}${hwmon 1 temp 1}°${goto 170}${color1}AC: ${color2}${hwmon 0 temp 1}°
+${color1}CPU:  ${goto 50}${color2}${hwmon 8 temp 1}°${goto 95}${color1}AC: ${color2}${hwmon 3 temp 1}°${goto 170}${color1}WiFi: ${color2}${hwmon 6 temp 1}°${goto 230}${color1}PC: ${color2}${hwmon 7 temp 1}°${goto 280}${color1}FAN: ${color2}${execi 10 sensors | grep 'fan1' | awk '{print substr($0, length($0)-8, 5)}'} rpm
 ${color1}HDD:${goto 50}${color2}${fs_free} ${goto 95}| ${fs_free_perc}%${goto 170}${fs_bar}
+${color1}Batterie:  ${color2}${battery} ${goto 170}${color2}${battery_time}
+${color4}${battery_bar}
 ${color1}IP Eth.: ${color2}${addr enp0s31f6}${goto 170}${color1}DL:${color2} ${downspeedf enp0s31f6}k/s ${goto 280}${color1}UP: ${alignr}${color3} ${upspeedf enp0s31f6}k/s
 ${color2}${downspeedgraph enp0s31f6 30,360 ffa700 008744 s}
-
 ${color1}IP Wi-Fi: ${color2}${addr wlp0s20f3}${goto 170}${color1}DL:${color2} ${downspeedf wlp0s20f3}k/s ${goto 280}${color1}UP: ${alignr}${color3} ${upspeedf wlp0s20f3}k/s
 ${color2}${downspeedgraph wlp0s20f3 30,360 ffa700 008744 s}
 

@@ -1,4 +1,3 @@
-
 conky.config = {
   background = true,
     own_window = true,
@@ -13,7 +12,7 @@ conky.config = {
     use_spacer = 'none',
     use_xft = true,
     xftalpha = 1,
-    font = 'Roboto:size=11',
+    font = 'Roboto:size=09',
     update_interval = 1,
     uppercase = false,
     override_utf8_locale = true,
@@ -26,8 +25,6 @@ conky.config = {
     show_graph_scale = true,
     show_graph_range = true,
     alignment = 'top_left',
-    hddtemp_port = 7634,
-    hddtemp_host = '127.0.0.1',
     gap_x = 10,
     gap_y = 35,
     net_avg_samples = 1,
@@ -41,29 +38,49 @@ conky.config = {
     color1 = 'yellow',
     color2 = 'green',
     color3 = 'red',
-    }
+    color4 = 'orange',}
 conky.text = [[
-${color1}${execi 86400 lsb_release -si}: ${color2}${execi 86400 lsb_release -sr} ${execi 86400 lsb_release -sc} ${goto 160}${color1}Kernel: ${alignr}${color2}$kernel
+${color1}${execi 86400 lsb_release -si}: ${color2}${cat /etc/debian_version} ${execi 86400 lsb_release -sc} ${goto 160}${color1}Kernel: ${alignr}${color2}$kernel
 ${color1}Uptime:${color2} $uptime_short ${goto 160}${color1}IP publique: ${alignr}${color2}${texeci 3600 wget http://checkip.dyndns.org -O - -o /dev/null | cut -d: -f 2 | cut -d \< -f 1}
 ${color1}Màj dispo:${color2} ${texeci 1800 echo $(($(apt list --upgradable 2>/dev/null | wc -l) - 1))}${goto 160}${color1}Reboot requis : ${alignr}${color2}${execi 1800 test -e /var/run/reboot-required && echo oui || echo non}
+${color1}UTC:${goto 50}${color2}${utime}
 
-${color1}CPU: ${goto 50}${color2}${cpubar 8}
+${color1}CPU: ${color2}${goto 50}${color2}${cpubar 8}
 ${cpugraph 30, ffa700 008744 s}
 ${color1}RAM: ${goto 50}${color2}$mem ${goto 95}| $memperc% ${color2}${goto 160}$membar
 #sys/class/hwmon/...
-${color1}M.2:${goto 50}${color2}${execi 300 nc localhost 7634 | cut -c25-26}° ${goto 90}${color1}GPU: ${color2}${nvidia temp}° ${goto 160}${color1}CPU: ${color2}${hwmon 1 temp 1}°${goto 280}${color1}FAN: ${alignr}${color2}${hwmon 4 fan 1} tr/m
 
-${color1}IP Eth.: ${color2}${addr enp0s25}${goto 160}${color1}DL:${color2} ${downspeedf enp0s25}k/s ${goto 280}${color1}UP: ${alignr}${color3} ${upspeedf enp0s25}k/s
-${color1}IP Wifi: ${color2}${addr wlp4s0}${goto 160}${color1}DL:${color2} ${downspeedf wlp4s0}k/s ${goto 280}${color1}UP:${alignr}${color3} ${upspeedf wlp4s0}k/s
-${color2}${downspeedgraph wlp4s0 30,360 ffa700 008744 s}
+${color2}Températures système:
+${color1}CPU:${goto 50}${color2}${hwmon 1 temp 1}° ${goto 90}${color1}GPU: ${color2}${nvidia temp}° ${goto 160}${color1}M.2: ${color2}${hwmon 2 temp 1}°${goto 220}${color1}Mobo: ${color2}${hwmon 7 temp 1}°${goto 300}${color1}Wifi: ${color2}${hwmon 6 temp 1}°
+#FAN: ${alignr}${color2}${hwmon 4 fan 1} tr/m
+
+${color2}Interfaces réseau:
+${color1}Eth.1: ${goto 50}${color2}${addr eno1}${goto 160}${color1}DL:${color2} ${downspeedf eno1}k/s ${goto 280}${color1}UP: ${alignr}${color3} ${upspeedf eno1}k/s
+${color2}${downspeedgraph eno1 30,360 ffa700 008744 s}
+${color1}Eth.2: ${goto 50}${color2}${addr eno2}${goto 160}${color1}DL:${color2} ${downspeedf eno2}k/s ${goto 280}${color1}UP: ${alignr}${color3} ${upspeedf eno2}k/s
+${color2}${downspeedgraph eno2 30,360 ffa700 008744 s}
+${color1}Wifi: ${goto 50}${color2}${addr wlp0s20f3}${goto 160}${color1}DL:${color2} ${downspeedf wlp0s20f3}k/s ${goto 280}${color1}UP:${alignr}${color3} ${upspeedf wlp0s20f3}k/s
+${color2}${downspeedgraph wlp0s20f3 30,360 ffa700 008744 s}
+
+${color2}Connexion ssh:
+${color1}Nombre de connexions: ${color2}${tcp_portmon 22 22 count} ${color1}Adresse Ip: ${color1}${tcp_portmon 22 22 rip 0}
+
+${color2}Espaces de stockage:
 ${color1}M.2:${goto 50}${color2}${fs_free} ${goto 95}| ${fs_free_perc}%${goto 160}${fs_bar}
-${color1}Data:${goto 50}${color2}${fs_free /media/bricole/Data Laptop} ${goto 95}| ${fs_free_perc /media/bricole/Data Laptop}%${goto 160}${fs_bar /media/bricole/Data Laptop}
-${color1}Bckp:${goto 50}${color2}${fs_free /run/timeshift/backup} ${goto 95}| ${fs_free_perc /run/timeshift/backup}%${goto 160}${fs_bar /run/timeshift/backup}
-${color1}UTC:${goto 50}${color2}${utime}
+${color1}Filesystem: ${color2}${fs_type} ${goto 110}| ${fs_size /}${goto 160}${fs_used}
+${diskiograph 30,360 ffa700 008744 s}
+#${color1}Data:${goto 50}${color2}${fs_free} ${goto 95}| ${fs_free_perc /media/bricole/Data Laptop}%${goto 160}${fs_bar /media/bricole/Data Laptop}
+#${color1}Bckp:${goto 50}${color2}${fs_free /run/timeshift/backup} ${goto 95}| ${fs_free_perc /run/timeshift/backup}%${goto 160}${fs_bar /run/timeshift/backup}
 #${if_running rhythmbox}
 #${color1}RhythmBox Now Playing : ${color2}${alignc}${exec rhythmbox-client --print-playing-format "%ta - %at"} ${alignc}${exec rhythmbox-client --print-playing-format "%tn - %tt"}
 #${execbar ~/.script/conky_rhythmbox_bar}${endif}
-${color1}Météo: ${font monospace:size=10}
-${color2}${texeci 3600 curl -s 'wttr.in/Bruxelles?qT0&lang=fr' | head -7}
-${texeci 3600 curl -s 'wttr.in/Colmar?qT0&lang=fr' | head -7}
+
+${color2}Audacious:
+${color1}${audacious_title 60}
+${color1}${audacious_position} ${color2}${audacious_bar 7,280} ${color1}${alignr}${audacious_length}
+${color1}Bitrate: ${color2}${audacious_bitrate} ${color1}Freq.: ${color2}${audacious_frequency} ${color1}Channel: ${color2}${audacious_channels} ${color1}${alignr}Volume: ${color2}${audacious_main_volume}%
+
+${color2}Météo: 
+${font monospace:size=10}${color2}${texeci 3600 curl -s 'wttr.in/Bruxelles?qT0&lang=fr' | head -7}
+#${texeci 3600 curl -s 'wttr.in/Colmar?qT0&lang=fr' | head -7}
 ]]

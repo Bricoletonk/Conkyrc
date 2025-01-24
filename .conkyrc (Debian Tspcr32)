@@ -44,40 +44,40 @@ conky.text = [[
 ${color2}Debian: ${color1}${texeci 900 cat /etc/debian_version}${texeci 900 cat /etc/lsb_release} ${execi 86400 lsb_release -sc} ${goto 200}${color2}Kernel: ${color1} $kernel 
 ${color2}Màj dispo:${color1} ${texeci 1800 echo $(($(apt list --upgradable 2>/dev/null | wc -l) - 1))} ${goto 200}${color2}Reboot requis: ${color1}${execi 1800 test -e /var/run/reboot-required && echo oui || echo non}
 ${color2}Uptime:${color1} ${uptime} ${color1} ${goto 200}${color2}UTC: ${color1}${utime}
+
 ${alignc}${color2}Date: ${color1}${texeci 1000 date "+%A %d %B %Y"}
-${color2}Météo : ${color1}${texeci 3600 curl -s 'wttr.in/bruxelles?qT0&lang=fr' | head -7}
-
-${color2}Utilisation CPU: ${color1}${cpubar 9 200}
-${color2}Fréquence: ${color1}${freq_g}GHz
-${color1}${cpugraph 15 300 color1}
-${color2}Nb. de processus: ${color1}${processes} ${goto 200}${color2}Running Processes: ${color1} $running_processes
-${top_mem "name","cpu","mem","uid" 10}
-${top_io name 1} ${goto 120}${top_io io_perc 1} ${goto 180}${top_io cpu 1} ${top_io mem 1}
-${top_io name 2} ${goto 120}${top_io io_perc 2} ${goto 180}${top_io cpu 2} ${top_io mem 2}
-${top_io name 3} ${goto 120}${top_io io_perc 3} ${goto 180}${top_io cpu 3} ${top_io mem 3}
-${top_io name 4} ${goto 120}${top_io io_perc 4} ${goto 180}${top_io cpu 4} ${top_io mem 4}
-${top_io name 5} ${goto 120}${top_io io_perc 5} ${goto 180}${top_io cpu 5} ${top_io mem 5}
-
+${color1}____________________________________________________
+${color2}Météo : ${font Monospace:size=8}${alignc}${color1}${texeci 3600 curl -s 'wttr.in/bruxelles?qT0&lang=fr' | head -7}${font Droid Sans Mono:size=10}
+${color1}____________________________________________________
+${color2}Utilisation CPU:
+${color1}[${cpu}%] ${color1}${cpubar 9 150}
+${color2}Fréquence: ${color1}${freq_g}GHz ${goto 180}
+${color1}${cpugraph color1}
+${color2}Nb. de processus: ${color1}${processes} ${goto 200}${color2}Running Processes: ${color1} ${running_processes}
+${color2}Nom:${goto 130}IO%${goto 190}CPU:${goto 300}Mem:${color1}
+${top_io name 1}${goto 130}${top_io io_perc 1}${goto 190}${top_io cpu 1}${goto 300}${top_io mem 1}
+${top_io name 2}${goto 130}${top_io io_perc 2}${goto 190}${top_io cpu 2}${goto 300}${top_io mem 2}
+${top_io name 3}${goto 130}${top_io io_perc 3}${goto 190}${top_io cpu 3}${goto 300}${top_io mem 3}
+${top_io name 4}${goto 130}${top_io io_perc 4}${goto 190}${top_io cpu 4}${goto 300}${top_io mem 4}
+${top_io name 5}${goto 130}${top_io io_perc 5}${goto 190}${top_io cpu 5}${goto 300}${top_io mem 5}
+${color1}____________________________________________________
 ${color2}Températures:
-${color2}CPU: ${color1}${hwmon 4 temp 1}° ${goto 200}${color2}HDD: ${color1}${hwmon 1 temp 1}°  
-
+${color2}CPU: ${color1}${hwmon 4 temp 1}° ${goto 190}${color2}HDD: ${color1}${hwmon 1 temp 1}°  
+${color1}____________________________________________________
 ${color2}Mémoire RAM:
-${color2}RAM: ${color1} $mem / $memmax [$memperc%]  ${goto 200}${color2}SWAP: ${color1} ${swap} / ${swapmax} [${swapperc}%]
-#${color2}CPU: ${color1}${texeci 2 sensors | grep "CPUTIN"| awk '{ print $2}'} - ${color2}FAN: ${color1}${hwmon 3 temp 1} tr/mn 
-
+${color2}RAM: ${color1} $mem / $memmax ${goto 150}[$memperc%]  ${goto 190}${color2}SWAP: ${color1} ${swap} / ${swapmax} [${swapperc}%]
+${color1}____________________________________________________
 ${color2}Espace de stockage:
-${color2}/srv: ${color1}${fs_used /srv} / ${fs_size /srv} [${fs_used_perc /srv}%] ${goto 200}${color2}/boot: ${color1}${fs_used /boot} / ${fs_size /boot} [${fs_used_perc /boot}%] 
-${color1}${fs_bar /srv}${goto 120} 
-${goto 200}${fs_bar /dev/sda}
-${color1}${diskiograph /dev/sda}
-
+${color2}/srv:   ${color1}${fs_used /srv} / ${fs_size /srv} ${goto 150}[${fs_used_perc /srv}%] ${goto 190}${color1}${fs_bar /srv}
+${color2}/boot: ${color1}${fs_used /boot} / ${fs_size /boot} ${goto 150}[${fs_used_perc /boot}%] ${goto 190}${fs_bar /}
+${color1}____________________________________________________
 ${color2}Connexions réseau:
-${color2}IP Publ.: ${color1}${texeci 1000 wget http://checkip.dyndns.org -O - -o /dev/null | cut -d : -f 2 | cut -d \< -f 1} ${goto 200}${color2}Latence: ${color1}${texeci 1 ping 8.8.8.8 -c 1 | grep time= | cut -d"=" -f4}
-${color2}IP enp7s0: ${color1}${addr enp7s0} ${goto 200}${color2}DL:${color1} ${downspeedf enp7s0}k/s ${goto 300} ${color2}UP:${color3} ${upspeedf enp7s0}k/s
+${color2}IP Publique: ${color1}${texeci 1000 wget http://checkip.dyndns.org -O - -o /dev/null | cut -d : -f 2 | cut -d \< -f 1} ${goto 200}${color2}Latence: ${color1}${texeci 1 ping 8.8.8.8 -c 1 | grep time= | cut -d"=" -f4}
+${color2}IP enp7s0:    ${color1}${addr enp7s0} ${goto 200}${color2}DL:${color1} ${downspeedf enp7s0}k/s ${goto 300} ${color2}UP:${color3} ${upspeedf enp7s0}k/s
 ${color1}${downspeedgraph enp7s0}
 ${color2}IP enp4s0: ${color1}${addr enp4s0} ${goto 200}${color2}DL:${color1} ${downspeedf enp4s0}k/s ${goto 300} ${color2}UP:${color3} ${upspeedf enp4s0}k/s
 ${color1}${downspeedgraph enp4s0}
-
+${color1}____________________________________________________
 ${color2}Connexions SSH actives: ${color1}${tcp_portmon 22 22 count}
 ${color1}${tcp_portmon 22 22 rhost 0} ${goto 200}${tcp_portmon 22 22 rip 0}
 ${color1}${tcp_portmon 22 22 rhost 1} ${goto 200}${tcp_portmon 22 22 rip 1}

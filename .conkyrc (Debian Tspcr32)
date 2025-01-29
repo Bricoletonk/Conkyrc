@@ -46,8 +46,8 @@ ${color2}Màj dispo:${color1} ${texeci 1800 echo $(($(apt list --upgradable 2>/d
 ${color2}Uptime:${color1} ${uptime} ${color1} ${goto 200}${color2}UTC: ${color1}${utime}
 
 ${alignc}${color2}Date: ${color1}${texeci 1000 date "+%A %d %B %Y"}
-${color1}____________________________________________________
-${color2}Météo : ${font Monospace:size=8}${alignc}${color1}${texeci 3600 curl -s 'wttr.in/bruxelles?qT0&lang=fr' | head -7}${font Droid Sans Mono:size=10}
+${color1}_____${color2}Météo : ${color1}__________________________________
+${font Monospace:size=8}${alignc}${color1}${texeci 3600 curl -s 'wttr.in/bruxelles?qT0&lang=fr' | head -7}${font Droid Sans Mono:size=10}
 ${color1}____________________________________________________
 ${color2}Utilisation CPU:
 ${color1}[${cpu}%] ${color1}${cpubar 9 150}
@@ -61,11 +61,13 @@ ${top_io name 3}${goto 130}${top_io io_perc 3}${goto 190}${top_io cpu 3}${goto 3
 ${top_io name 4}${goto 130}${top_io io_perc 4}${goto 190}${top_io cpu 4}${goto 300}${top_io mem 4}
 ${top_io name 5}${goto 130}${top_io io_perc 5}${goto 190}${top_io cpu 5}${goto 300}${top_io mem 5}
 ${color1}____________________________________________________
-${color2}Températures:
-${color2}CPU: ${color1}${hwmon 4 temp 1}° ${goto 190}${color2}HDD: ${color1}${hwmon 1 temp 1}°  
-${color1}____________________________________________________
 ${color2}Mémoire RAM:
 ${color2}RAM: ${color1} $mem / $memmax ${goto 150}[$memperc%]  ${goto 190}${color2}SWAP: ${color1} ${swap} / ${swapmax} [${swapperc}%]
+$membar
+$memgraph
+${color1}____________________________________________________
+${color2}Températures:
+${color2}CPU: ${color1}${hwmon 4 temp 1}° ${goto 190}${color2}HDD: ${color1}${hwmon 1 temp 1}°  
 ${color1}____________________________________________________
 ${color2}Espace de stockage:
 ${color2}/srv:   ${color1}${fs_used /srv} / ${fs_size /srv} ${goto 150}[${fs_used_perc /srv}%] ${goto 190}${color1}${fs_bar /srv}
@@ -83,5 +85,4 @@ ${color1}${tcp_portmon 22 22 rhost 0} ${goto 200}${tcp_portmon 22 22 rip 0}
 ${color1}${tcp_portmon 22 22 rhost 1} ${goto 200}${tcp_portmon 22 22 rip 1}
 ${color1}${tcp_portmon 22 22 rhost 2} ${goto 200}${tcp_portmon 22 22 rip 2}
 ${color1}${tcp_portmon 22 22 rhost 3} ${goto 200}${tcp_portmon 22 22 rip 3}
-
 ]]

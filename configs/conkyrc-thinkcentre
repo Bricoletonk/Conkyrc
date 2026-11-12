@@ -1,0 +1,75 @@
+-- Conky ThinkCentre M (Manjaro)
+-- Installer avec : scripts/install-conky.sh configs/conkyrc-thinkcentre
+-- (copie le script d'aide et y met le nom de l'interface réseau principale)
+
+conky.config = {
+    background = true,
+    own_window = true,
+    own_window_class = 'Conky',
+    own_window_transparent = false,
+    own_window_type = 'desktop',
+    own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',
+    own_window_argb_visual = true,
+    own_window_argb_value = 0,
+    double_buffer = true,
+    no_buffers = true,
+    use_spacer = 'none',
+    use_xft = true,
+    xftalpha = 1,
+    font = 'Roboto:size=10',
+    update_interval = 1,
+    uppercase = false,
+    override_utf8_locale = true,
+    stippled_borders = 1,
+    border_width = 5,
+    draw_borders = false,
+    draw_graph_borders = true,
+    draw_outline = false,
+    draw_shades = false,
+    show_graph_scale = true,
+    show_graph_range = true,
+    alignment = 'top_right',
+    -- Largeur fixe : évite que la fenêtre (et les graphes) se redimensionne à chaque rafraîchissement
+    minimum_width = 360,
+    maximum_width = 360,
+    gap_x = 20,
+    gap_y = 45,
+    net_avg_samples = 1,
+    cpu_avg_samples = 6,
+    short_units = true,
+    pad_percents = 2,
+    text_buffer_size = 2048,
+    out_to_console = false,
+    out_to_stderr = false,
+    extra_newline = false,
+    -- Une interface n'est considérée "active" que si elle a une adresse IP
+    if_up_strictness = 'address',
+    color1 = 'white',
+    color2 = 'green',
+    color3 = 'red',
+    color4 = 'yellow',
+}
+
+conky.text = [[
+${color1}${execi 86400 lsb_release -si}: ${color2}${execi 86400 lsb_release -sr} ${goto 160}${color1}Kernel: ${alignr}${color2}$kernel
+${color1}Uptime:${color2} $uptime_short ${goto 160}${color1}IP publique: ${alignr}${color2}${texeci 600 curl -s --max-time 5 https://api.ipify.org}
+${color1}Màj dispo:${color2} ${texeci 1800 ~/.config/conky/conky-sensors.sh updates}${goto 160}${color1}Reboot requis : ${alignr}${color2}${execi 600 ~/.config/conky/conky-sensors.sh reboot}
+
+${color1}CPU: ${goto 50}${color2}${cpu cpu0}% ${goto 95}${color2}${cpubar 8}
+${cpugraph 30,360 ffa700 008744 s}
+${color1}RAM: ${goto 50}${color2}$mem ${goto 95}| $memperc% ${color2}${goto 170}$membar
+${color1}Temp:  ${color2}${execi 5 ~/.config/conky/conky-sensors.sh temps}
+${if_match "${execi 10 ~/.config/conky/conky-sensors.sh fan}" != "n/d"}${color1}Ventilateur: ${goto 95}${color2}${execi 5 ~/.config/conky/conky-sensors.sh fan}
+${endif}${color1}HDD:${goto 50}${color2}${fs_free} ${goto 95}| ${fs_free_perc}%${goto 170}${fs_bar}
+
+${if_up @IFACE@}${color1}IP: ${color2}${addr @IFACE@}${goto 200}${color1}DL:${color2} ${downspeed @IFACE@}/s ${goto 295}${color1}UP: ${alignr}${color3} ${upspeed @IFACE@}/s
+${color2}${downspeedgraph @IFACE@ 30,360 ffa700 008744 s}
+${endif}${if_match "${execi 5 ~/.config/conky/conky-sensors.sh ts}" == "on"}${color3}Tailscale: ${color2}${addr tailscale0}${goto 200}${color1}DL:${color2} ${downspeed tailscale0}/s ${goto 295}${color1}UP: ${alignr}${color3} ${upspeed tailscale0}/s
+${color1}Nœud de sortie: ${color3}${execi 10 ~/.config/conky/conky-sensors.sh tsexit}
+${color3}${downspeedgraph tailscale0 30,360 ff6b6b 8b0000 s}
+${endif}
+${color1}Météo: ${font monospace:size=10}
+${color2}${texeci 3600 curl -s --max-time 10 'wttr.in/Bruxelles?qT0&lang=fr' | head -7}
+
+${texeci 3600 curl -s --max-time 10 'wttr.in/Colmar?qT0&lang=fr' | head -7}
+]]

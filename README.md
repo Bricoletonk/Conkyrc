@@ -12,9 +12,19 @@ Mes configurations [Conky](https://github.com/brndnmtthws/conky) (moniteur syst�
 | `configs/conkyrc-debian-tspcr32` | Debian sur le TSPCR32 |
 | `configs/conkyrc-t14` | ThinkPad T14 |
 | `configs/conkyrc-x250` | ThinkPad X250 |
+| `configs/conkyrc-thinkcentre` | ThinkCentre M sous Manjaro (sans batterie, interface réseau détectée à l'installation) |
 | `configs/conkyrc-vanille` | Version de base, sans personnalisation |
 
 ## Installation
+
+Méthode simple (recommandée), qui installe aussi le script d'aide :
+
+```bash
+git clone https://github.com/Bricoletonk/Conkyrc.git ~/Conkyrc
+~/Conkyrc/scripts/install-conky.sh configs/conkyrc-thinkcentre   # ou conkyrc-t14
+```
+
+Méthode manuelle :
 
 ```bash
 cp configs/conkyrc-t14 ~/.conkyrc   # choisir le fichier de sa machine

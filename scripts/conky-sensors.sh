@@ -12,6 +12,8 @@
 #    conky-sensors.sh fan      → "2900 rpm" / "arrêt" / "n/d"
 #    conky-sensors.sh ts       → "on" si Tailscale est connecté, sinon "off"
 #    conky-sensors.sh tsexit   → nom du nœud de sortie Tailscale, ou "aucun"
+#    conky-sensors.sh updates  → nombre de mises à jour (apt, pamac ou checkupdates)
+#    conky-sensors.sh reboot   → "oui" si un redémarrage est requis
 #    conky-sensors.sh diag     → liste tous les capteurs (pour dépannage)
 # ==========================================================
 
@@ -118,6 +120,27 @@ else:
 ' <<< "$json" 2>/dev/null || echo "aucun"
 }
 
+# Nombre de mises à jour disponibles (Debian/Ubuntu, Manjaro/Arch)
+updates() {
+    if command -v apt-get >/dev/null 2>&1; then
+        apt-get -s upgrade 2>/dev/null | grep -c '^Inst'
+    elif command -v pamac >/dev/null 2>&1; then
+        pamac checkupdates -q 2>/dev/null | grep -c .
+    elif command -v checkupdates >/dev/null 2>&1; then
+        checkupdates 2>/dev/null | grep -c .
+    else
+        echo "n/d"
+    fi
+}
+
+# Redémarrage requis ? (Debian : fichier témoin ; Arch/Manjaro : le noyau en cours n'est plus installé)
+reboot_needed() {
+    if [ -e /run/reboot-required ]; then echo oui
+    elif [ -d /usr/lib/modules ] && [ ! -d "/usr/lib/modules/$(uname -r)" ]; then echo oui
+    else echo non
+    fi
+}
+
 diag() {
     local dev name f
     for dev in "$HWMON"/hwmon*; do
@@ -135,6 +158,7 @@ diag() {
 }
 
 case "$1" in
-    temps|fan|ts|tsexit|diag) "$1" ;;
-    *) echo "Usage : $0 {temps|fan|ts|tsexit|diag}" >&2; exit 1 ;;
+    temps|fan|ts|tsexit|updates|diag) "$1" ;;
+    reboot) reboot_needed ;;
+    *) echo "Usage : $0 {temps|fan|ts|tsexit|updates|reboot|diag}" >&2; exit 1 ;;
 esac

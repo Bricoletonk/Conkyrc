@@ -28,6 +28,9 @@ conky.config = {
     show_graph_scale = true,
     show_graph_range = true,
     alignment = 'top_right',
+    -- Largeur fixe : évite que la fenêtre (et les graphes) se redimensionne à chaque rafraîchissement
+    minimum_width = 360,
+    maximum_width = 360,
     gap_x = 20,
     gap_y = 45,
     net_avg_samples = 1,
@@ -52,7 +55,7 @@ ${color1}Uptime:${color2} $uptime_short ${goto 160}${color1}IP publique: ${align
 ${color1}Màj dispo:${color2} ${texeci 1800 apt-get -s upgrade 2>/dev/null | grep -c '^Inst'}${goto 160}${color1}Reboot requis : ${alignr}${color2}${execi 1800 test -e /run/reboot-required && echo oui || echo non}
 
 ${color1}CPU: ${goto 50}${color2}${cpu cpu0}% ${goto 95}${color2}${cpubar 8}
-${cpugraph 30, ffa700 008744 s}
+${cpugraph 30,360 ffa700 008744 s}
 ${color1}RAM: ${goto 50}${color2}$mem ${goto 95}| $memperc% ${color2}${goto 170}$membar
 ${color1}Temp:  ${color2}${execi 5 ~/.config/conky/conky-sensors.sh temps}
 ${color1}Ventilateur: ${goto 95}${color2}${execi 5 ~/.config/conky/conky-sensors.sh fan}

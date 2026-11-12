@@ -17,7 +17,7 @@ Mes configurations [Conky](https://github.com/brndnmtthws/conky) (moniteur syst�
 
 ## Installation
 
-Méthode simple (recommandée), qui installe aussi le script d'aide :
+Méthode simple (recommandée) : installe le script d'aide, détecte les cartes réseau de la machine et ajoute le démarrage automatique de Conky.
 
 ```bash
 git clone https://github.com/Bricoletonk/Conkyrc.git ~/Conkyrc

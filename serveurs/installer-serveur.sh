@@ -10,9 +10,8 @@
 #  1. crée la clé dédiée ~/.ssh/mcdu_ed25519 si elle n'existe pas
 #  2. copie le script de mesures dans /usr/local/bin/ du serveur
 #     (avec ta connexion SSH habituelle : mot de passe ou clé)
-#  3. autorise la clé, limitée à ce seul script
-#     (Proxmox : pour root, automatiquement ;
-#      OPNsense : pour un utilisateur « mcdu » sans droits, via l'interface web)
+#  3. autorise la clé pour root, limitée à ce seul script
+#     (Proxmox : automatiquement ; OPNsense : ligne à coller dans l'interface web)
 #  4. teste la clé dédiée
 # ==========================================================
 set -e
@@ -49,19 +48,13 @@ if [ "$TYPE" = proxmox ]; then
     ssh "$CIBLE" "grep -qF '$(cut -d' ' -f2 "$CLE.pub")' /root/.ssh/authorized_keys 2>/dev/null || echo '$LIGNE' >> /root/.ssh/authorized_keys"
     echo "Clé autorisée sur Proxmox."
 else
-    # OPNsense : utilisateur « mcdu » sans aucun droit, créé dans l'interface web
-    # (OPNsense régénère les comptes et leurs clés depuis sa configuration)
-    UTIL="mcdu"
+    # OPNsense : seuls les administrateurs ont un shell SSH ; on utilise donc root,
+    # avec une clé qui ne peut lancer que le script. La clé s'ajoute dans
+    # l'interface web (OPNsense régénère authorized_keys depuis sa configuration).
     echo
     echo "Dans l'interface web d'OPNsense :"
-    echo "  1. Système → Accès → Groupes : créer le groupe « mcdu », sans aucun privilège."
-    echo "  2. Système → Accès → Utilisateurs : créer l'utilisateur « mcdu » :"
-    echo "       - cocher « Générer un mot de passe brouillé » (aucune connexion web possible)"
-    echo "       - Shell de connexion : /bin/sh"
-    echo "       - Groupe : mcdu"
-    echo "       - Clés autorisées : coller la ligne ci-dessous"
-    echo "  3. Système → Paramètres → Administration → Secure Shell :"
-    echo "       ajouter « mcdu » dans « Groupe de connexion », puis Enregistrer."
+    echo "  System → Access → Users → root (crayon) → « Authorized keys » :"
+    echo "  ajouter cette ligne à la suite des clés existantes, sans rien effacer, puis Save."
     echo
     echo "$LIGNE"
     echo

@@ -4,10 +4,9 @@
 #  À placer sur le pare-feu : /usr/local/bin/mcdu-opnsense.sh (chmod 755)
 #
 #  Appelé en SSH par une clé dédiée qui ne peut lancer QUE ce script
-#  (option command="…",restrict), de préférence pour un utilisateur « mcdu »
-#  sans aucun droit (voir serveurs/README.md). Il ne modifie rien.
-#  Sans root, la liste des mises à jour n'est pas rafraîchie par le script :
-#  il lit celle de la dernière vérification faite par OPNsense.
+#  (option command="…",restrict dans les clés autorisées de root, voir
+#  serveurs/README.md). OPNsense ne donne de shell SSH qu'aux administrateurs ;
+#  la clé restreinte empêche toute autre commande. Le script ne modifie rien.
 #
 #  Sortie : une mesure par ligne, au format clé=valeur
 #    cpu=0.05  cores=4  mem_used=…  mem_total=…  uptime=…  host=…  version=…

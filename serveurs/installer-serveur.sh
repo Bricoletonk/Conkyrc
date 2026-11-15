@@ -10,8 +10,8 @@
 #  1. crée la clé dédiée ~/.ssh/mcdu_ed25519 si elle n'existe pas
 #  2. copie le script de mesures dans /usr/local/bin/ du serveur
 #     (avec ta connexion SSH habituelle : mot de passe ou clé)
-#  3. Proxmox : autorise la clé, limitée à ce seul script
-#     OPNsense : affiche la ligne à coller dans l'interface web
+#  3. autorise la clé pour root, limitée à ce seul script
+#     (Proxmox : automatiquement ; OPNsense : ligne à coller dans l'interface web)
 #  4. teste la clé dédiée
 # ==========================================================
 set -e
@@ -41,32 +41,23 @@ LIGNE="command=\"/usr/local/bin/$SCRIPT\",restrict $(cat "$CLE.pub")"
 echo "Copie de $SCRIPT sur $CIBLE ..."
 ssh "$CIBLE" "cat > /usr/local/bin/$SCRIPT && chmod 755 /usr/local/bin/$SCRIPT" < "$DIR/$SCRIPT"
 
-# --- 3. Autorisation de la clé
+# --- 3. Autorisation de la clé (limitée au script de mesures)
+UTIL="root"
 if [ "$TYPE" = proxmox ]; then
     # Sur Proxmox, /root/.ssh/authorized_keys pointe vers /etc/pve/priv/authorized_keys
     ssh "$CIBLE" "grep -qF '$(cut -d' ' -f2 "$CLE.pub")' /root/.ssh/authorized_keys 2>/dev/null || echo '$LIGNE' >> /root/.ssh/authorized_keys"
-    echo "Clé autorisée sur Proxmox (limitée au script de mesures)."
-    UTIL="root"
+    echo "Clé autorisée sur Proxmox."
 else
-    UTIL="mcdu"
-    cat <<EOF
-
-Dans l'interface web d'OPNsense :
-  1. Système → Accès → Groupes : créer le groupe « mcdu », sans aucun privilège.
-  2. Système → Accès → Utilisateurs : créer l'utilisateur « mcdu »
-       - cocher « Générer un mot de passe brouillé » (pas de connexion web possible)
-       - Shell de connexion : /bin/sh
-       - Groupe : mcdu
-       - Clés autorisées : coller la ligne ci-dessous
-  3. Système → Paramètres → Administration → Secure Shell :
-       ajouter le groupe « mcdu » dans « Groupe de connexion » et enregistrer.
-
-Ligne à coller (une seule ligne) :
-
-$LIGNE
-
-Appuie sur Entrée quand c'est fait pour tester la connexion...
-EOF
+    # OPNsense régénère les clés autorisées depuis sa configuration :
+    # elles doivent être ajoutées dans l'interface web pour survivre au redémarrage
+    echo
+    echo "Dans l'interface web d'OPNsense :"
+    echo "  Système → Accès → Utilisateurs → root (crayon) → « Clés autorisées » :"
+    echo "  ajouter cette ligne à la suite des clés existantes, sans rien effacer, puis Enregistrer."
+    echo
+    echo "$LIGNE"
+    echo
+    echo "Appuie sur Entrée quand c'est fait pour tester la connexion..."
     read -r _
 fi
 

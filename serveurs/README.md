@@ -1,6 +1,6 @@
 # Panneau « infra » : Proxmox et OPNsense
 
-> **En cours** : le panneau a été refait (maquette validée : OPNsense, Proxmox, HexOS, Nasferatu). Les scripts ci-dessous sont l'ancienne version et seront mis à jour pour fournir toutes les mesures du nouveau panneau. Attendre cette mise à jour avant d'installer.
+> **État** : script OPNsense à jour pour le nouveau panneau. Proxmox, HexOS et Nasferatu : à venir.
 
 Un second panneau Conky MCDU affiche :
 
@@ -23,7 +23,7 @@ Depuis le T14, dans le dépôt :
 # 1. Proxmox : copie le script, autorise la clé, teste
 serveurs/installer-serveur.sh proxmox root@192.168.3.2
 
-# 2. OPNsense : copie le script, puis guide pour créer l'utilisateur « mcdu » dans l'interface web
+# 2. OPNsense : copie le script, puis donne la ligne à coller dans l'interface web
 serveurs/installer-serveur.sh opnsense root@192.168.2.1
 
 # 3. Le panneau, à gauche du panneau principal
@@ -42,15 +42,16 @@ apt install lm-sensors && sensors-detect --auto
 
 ### OPNsense
 
-- Le script tourne sous un utilisateur sans privilèges (`mcdu`), dans un groupe sans droits, avec un mot de passe brouillé : aucune connexion web possible.
-- Après une mise à jour majeure d'OPNsense, vérifier que `/usr/local/bin/mcdu-opnsense.sh` existe toujours (sinon relancer l'étape 2).
-- Si la copie échoue en root (SSH root désactivé), activer temporairement « Autoriser la connexion root » dans Système → Paramètres → Administration → Secure Shell.
+- Le script tourne en root (l'état des passerelles, Tailscale et le firmware l'exigent), mais la clé ne peut lancer que lui.
+- La clé s'ajoute dans l'interface web (Système → Accès → Utilisateurs → root → Clés autorisées) : OPNsense régénère le fichier `authorized_keys` à partir de sa configuration.
+- La connexion SSH de root doit être autorisée (Système → Paramètres → Administration → Secure Shell).
+- Après une mise à jour majeure d'OPNsense, vérifier que `/usr/local/bin/mcdu-opnsense.sh` existe toujours (sinon relancer l'installation).
 
 ## Tester à la main
 
 ```bash
 ssh -i ~/.ssh/mcdu_ed25519 root@192.168.3.2 mcdu
-ssh -i ~/.ssh/mcdu_ed25519 mcdu@192.168.2.1 mcdu
+ssh -i ~/.ssh/mcdu_ed25519 root@192.168.2.1 mcdu
 ```
 
 Chaque commande doit afficher des lignes `cpu=…`, `mem_used=…`, etc.
@@ -58,4 +59,4 @@ Chaque commande doit afficher des lignes `cpu=…`, `mem_used=…`, etc.
 ## Retirer l'accès
 
 Supprimer la ligne `command="/usr/local/bin/mcdu-…"` dans `/root/.ssh/authorized_keys` (Proxmox)
-et l'utilisateur `mcdu` (OPNsense).
+et dans les clés autorisées de root (OPNsense, interface web).

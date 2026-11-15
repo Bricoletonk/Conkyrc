@@ -394,6 +394,38 @@ playerctl metadata --format '{{playerName}}|{{status}}|{{position}}|{{mpris:leng
     return r
 end
 
+-- ---------------------------------------------------------------- Serveurs distants (SSH)
+-- Le serveur n'accepte cette clé que pour lancer son script de mesures
+-- (voir serveurs/README.md). La connexion SSH reste ouverte 2 minutes
+-- entre deux relevés (ControlPersist) pour ne pas refaire la négociation.
+--
+-- Renvoie { etat = "attente" | "hors_ligne" | "ok", ... mesures ..., temps = { {label, valeur} } }
+
+function S.remote(key, cfg, now)
+    if not A.dir then A.init() end
+    local home = os.getenv("HOME") or ""
+    local cle = (cfg.cle or "~/.ssh/mcdu_ed25519"):gsub("^~", home)
+    local cmd = string.format(
+        "ssh -i '%s' -p %d -o BatchMode=yes -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new " ..
+        "-o ControlMaster=auto -o ControlPath='%s/ssh-%%C' -o ControlPersist=120 %s@%s mcdu",
+        cle, cfg.port or 22, A.dir, cfg.utilisateur or "root", cfg.hote)
+    local v = A.get(key, cmd, cfg.intervalle or 5, now)
+    if v == nil then return { etat = "attente" } end
+    local r = { etat = "hors_ligne", temps = {} }
+    for k, val in v:gmatch("([%w_]+)=([^\n]*)") do
+        if k == "temp" then
+            local l, t = val:match("^(%S+)%s+(%d+)")
+            if l then r.temps[#r.temps + 1] = { label = l, value = tonumber(t) } end
+        else
+            r[k] = tonumber(val) or val
+        end
+    end
+    if r.cpu then r.etat = "ok" end
+    if r.vm then r.vm_run, r.vm_total = tostring(r.vm):match("(%d+)/(%d+)") end
+    if r.ct then r.ct_run, r.ct_total = tostring(r.ct):match("(%d+)/(%d+)") end
+    return r
+end
+
 -- ---------------------------------------------------------------- Météo (wttr.in)
 
 local DIRS = { N = "N", NNE = "NNE", NE = "NE", ENE = "ENE", E = "E", ESE = "ESE", SE = "SE", SSE = "SSE",

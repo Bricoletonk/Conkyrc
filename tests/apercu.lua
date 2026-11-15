@@ -158,7 +158,14 @@ A.mock = empty and {} or {
     meteo1 = string.format(J, "3", "87", "Bruine l\\u00e9g\\u00e8re", "5", "SW", "9", "8", "2"),
     meteo2 = string.format(J, "11", "64", "Ensoleillé", "12", "NNE", "4", "14", "3"),
     nvidia = "",
+    -- sorties types des scripts serveurs/mcdu-pve.sh et mcdu-opnsense.sh
+    pve = "cpu=0.234\ncores=12\nmem_total=67430866944\nmem_used=41875931136\nload=2.31 1.98 1.75\n" ..
+        "uptime=3888000.12\nhost=pve\nversion=8.4.1\nvm=4/6\nct=3/5\nupdates=7\n" ..
+        "temp=CPU 54\ntemp=SSD 41\ntemp=SSD2 38\ntemp=CARTE 36\nfan=1450",
+    opn = "cpu=0.071\nwan=igb0.20\nrx=3120000\ntx=412000\ncores=4\nmem_total=8355315712\n" ..
+        "mem_used=1338507264\nload=0.22 0.18 0.15\nuptime=950000\nhost=fw\nversion=26.1.2",
 }
+if os.getenv("HORS_LIGNE") then A.mock.opn = "ssh: connect to host 192.168.2.1 port 22: No route to host" end
 
 local P = mcdu_profile(profile)
 local h

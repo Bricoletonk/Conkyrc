@@ -4,9 +4,10 @@
 #  À placer sur le pare-feu : /usr/local/bin/mcdu-opnsense.sh (chmod 755)
 #
 #  Appelé en SSH par une clé dédiée qui ne peut lancer QUE ce script
-#  (option command="…",restrict dans les clés autorisées de root,
-#  voir serveurs/README.md). Lancé en root car l'état des passerelles,
-#  Tailscale et la vérification du firmware l'exigent ; il ne modifie rien.
+#  (option command="…",restrict), de préférence pour un utilisateur « mcdu »
+#  sans aucun droit (voir serveurs/README.md). Il ne modifie rien.
+#  Sans root, la liste des mises à jour n'est pas rafraîchie par le script :
+#  il lit celle de la dernière vérification faite par OPNsense.
 #
 #  Sortie : une mesure par ligne, au format clé=valeur
 #    cpu=0.05  cores=4  mem_used=…  mem_total=…  uptime=…  host=…  version=…
@@ -16,7 +17,7 @@
 # ==========================================================
 export LC_ALL=C
 PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
-CACHE=/tmp/mcdu-opnsense
+CACHE=/tmp/mcdu-opnsense-$(id -un)
 
 # --- Interface WAN = interface de la route par défaut
 WAN=$(route -n get default 2>/dev/null | awk '/interface:/ { print $2 }')
@@ -97,7 +98,7 @@ fi
 
 # --- Firmware : version disponible du paquet opnsense (vérifiée toutes les 6 h)
 if [ ! -f "$CACHE.fw" ] || [ $(( $(date +%s) - $(stat -f %m "$CACHE.fw") )) -gt 21600 ]; then
-    pkg update -q >/dev/null 2>&1
+    [ "$(id -u)" = 0 ] && pkg update -q >/dev/null 2>&1
     NEW=$(pkg rquery %v opnsense 2>/dev/null)
     CUR=$(pkg query %v opnsense 2>/dev/null)
     if [ -n "$NEW" ] && [ "$NEW" != "$CUR" ]; then echo "$NEW" > "$CACHE.fw"; else : > "$CACHE.fw"; fi

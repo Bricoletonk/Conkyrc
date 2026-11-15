@@ -18,7 +18,7 @@ return {
 
     opnsense = {
         hote = "192.168.2.1",
-        utilisateur = "root",   -- clé limitée au script de mesures
+        utilisateur = "mcdu",   -- utilisateur sans droits, clé limitée au script de mesures
     },
     proxmox = {
         hote = "192.168.3.2",

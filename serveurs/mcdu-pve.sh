@@ -75,7 +75,7 @@ for dev in /sys/class/hwmon/hwmon*; do
         # Plusieurs disques NVMe : SSD, SSD2, SSD3...
         n=${seen[$label]:-0}; seen[$label]=$((n + 1))
         (( n > 0 )) && label="$label$((n + 1))"
-        echo "temp=$label $best"
+        echo "temp=$label|$best"
     fi
     for f in "$dev"/fan*_input; do
         [ -e "$f" ] || continue

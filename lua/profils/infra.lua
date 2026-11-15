@@ -14,15 +14,30 @@ return {
     -- Hauteur de la fenêtre (avant échelle)
     hauteur = 560,
 
-    sections = { "proxmox", "opnsense" },
+    sections = { "opnsense", "proxmox", "hexos", "nasferatu" },
 
+    opnsense = {
+        hote = "192.168.2.1",
+        utilisateur = "mcdu",
+    },
     proxmox = {
         hote = "192.168.3.2",
         utilisateur = "root",
     },
-    opnsense = {
-        hote = "192.168.2.1",
+    -- TrueNAS (HexOS) virtualisé dans Proxmox, disques dédiés à la VM
+    hexos = {
+        type = "nas",
+        titre = "HEXOS",
+        hote = "192.168.30.11",
         utilisateur = "mcdu",
+    },
+    -- Synology DS218+
+    nasferatu = {
+        type = "nas",
+        titre = "NASFERATU",
+        hote = "192.168.30.10",
+        utilisateur = "mcdu",
+        apps = "PAQUETS",
     },
     -- Options communes possibles dans proxmox = { } et opnsense = { } :
     --   port = 22, intervalle = 5 (secondes), cle = "~/.ssh/mcdu_ed25519"

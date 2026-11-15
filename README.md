@@ -33,9 +33,23 @@ git clone https://github.com/Bricoletonk/Conkyrc.git ~/Conkyrc
 Profils fournis : `t14`, `x250`, `thinkcentre`, `principal`, `tspcr32`, `defaut`.
 L'installateur télécharge la police [B612 Mono](https://github.com/polarsys/b612) (police des cockpits Airbus) si elle manque, et signale les commandes facultatives absentes (`curl`, `playerctl`, `nmcli`).
 
-### Second panneau : Proxmox et OPNsense
+### Replier une section
 
-Le profil `infra` affiche un second panneau à gauche du premier : CPU, RAM, températures, ventilateur, VM actives et mises à jour de Proxmox ; CPU, RAM et trafic WAN d'OPNsense.
+Laisser le curseur immobile sur le `-` à droite d'un titre de section : un trait vert part de la gauche et, en 0,5 s, la section se replie (le `-` devient `+`). Même geste sur le `+` pour la déployer.
+Une section repliée garde une ligne de résumé, et son titre passe en ambre ou en rouge si elle cache une alerte. L'état est conservé dans `~/.config/conky/mcdu-replie-<profil>.txt`.
+
+Sous GNOME (Wayland), Conky ne reçoit pas les clics : c'est pourquoi le repli se fait au survol. Le panneau est redessiné 10 fois par seconde pour l'animation (2 sur batterie) ; les mesures restent relues une fois par seconde.
+
+### Second panneau : OPNsense, Proxmox, HexOS, Nasferatu
+
+Le profil `infra` affiche un second panneau à gauche du premier :
+
+- **OPNsense** : CPU et RAM, latence et perte WAN, trafic, IP publique, Tailscale, firmware
+- **Proxmox** : CPU, RAM, températures, stockages, dernière sauvegarde, mises à jour, uptime de chaque VM et conteneur
+- **HexOS** (TrueNAS) et **Nasferatu** (Synology) : CPU et RAM, températures, pools, alertes SMART
+
+> En cours : les scripts de `serveurs/` ne fournissent pas encore toutes ces mesures (maquette validée, scripts à suivre).
+
 Les mesures sont lues en SSH avec une clé limitée à un script de lecture : mise en place dans [`serveurs/README.md`](serveurs/README.md).
 
 ### Personnaliser

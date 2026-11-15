@@ -247,7 +247,7 @@ function S.net_update(now)
         end
     end
     -- Deuxième appel dans la même image (ou trop rapproché) : on garde les débits précédents
-    if prev_t and now - prev_t < 0.3 then return net end
+    if prev_t and now - prev_t < 0.9 then return net end
     local dt = prev_t and (now - prev_t) or 0
     for name, s in pairs(stats) do
         local p = prev_net[name]
@@ -399,7 +399,7 @@ end
 -- (voir serveurs/README.md). La connexion SSH reste ouverte 2 minutes
 -- entre deux relevés (ControlPersist) pour ne pas refaire la négociation.
 --
--- Renvoie { etat = "attente" | "hors_ligne" | "ok", ... mesures ..., temps = { {label, valeur} } }
+-- Renvoie { etat = "attente" | "hors_ligne" | "ok", mesures simples..., listes : temp, vm, ct, store, pool, smart }
 
 function S.remote(key, cfg, now)
     if not A.dir then A.init() end
@@ -411,18 +411,20 @@ function S.remote(key, cfg, now)
         cle, cfg.port or 22, A.dir, cfg.utilisateur or "root", cfg.hote)
     local v = A.get(key, cmd, cfg.intervalle or 5, now)
     if v == nil then return { etat = "attente" } end
-    local r = { etat = "hors_ligne", temps = {} }
+    -- Clés qui peuvent apparaître plusieurs fois : rangées dans des listes
+    local LISTES = { temp = true, vm = true, ct = true, store = true, pool = true, smart = true }
+    local r = { etat = "hors_ligne" }
+    for k in pairs(LISTES) do r[k] = {} end
     for k, val in v:gmatch("([%w_]+)=([^\n]*)") do
-        if k == "temp" then
-            local l, t = val:match("^(%S+)%s+(%d+)")
-            if l then r.temps[#r.temps + 1] = { label = l, value = tonumber(t) } end
+        if LISTES[k] then
+            local f = {}
+            for x in (val .. "|"):gmatch("([^|]*)|") do f[#f + 1] = tonumber(x) or x end
+            table.insert(r[k], f)
         else
             r[k] = tonumber(val) or val
         end
     end
     if r.cpu then r.etat = "ok" end
-    if r.vm then r.vm_run, r.vm_total = tostring(r.vm):match("(%d+)/(%d+)") end
-    if r.ct then r.ct_run, r.ct_total = tostring(r.ct):match("(%d+)/(%d+)") end
     return r
 end
 
@@ -447,6 +449,27 @@ function S.weather(city, idx, now)
         tmax = tonumber(f("maxtempC") or ""), tmin = tonumber(f("mintempC") or ""),
         desc = U.json_unescape(U.trim(desc or "")),
     }
+end
+
+-- ---------------------------------------------------------------- Cadence des mesures
+-- Le panneau est redessiné plusieurs fois par seconde (animation du repli),
+-- mais les mesures ne sont relues qu'une fois par seconde.
+
+local unpack_ = table.unpack or unpack
+local function pack(...) return { n = select("#", ...), ... } end
+
+local function every_second(f)
+    local t, res = -1e9, nil
+    return function(...)
+        local now = U.now()
+        if now - t >= 0.95 then t, res = now, pack(f(...)) end
+        return unpack_(res, 1, res.n)
+    end
+end
+
+for _, name in ipairs({ "cpu", "freq", "loadavg", "mem", "temps", "fan", "battery", "ssh", "uptime",
+    "reboot_needed", "interfaces", "tailscale", "media" }) do
+    S[name] = every_second(S[name])
 end
 
 return S

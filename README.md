@@ -33,6 +33,11 @@ git clone https://github.com/Bricoletonk/Conkyrc.git ~/Conkyrc
 Profils fournis : `t14`, `x250`, `thinkcentre`, `principal`, `tspcr32`, `defaut`.
 L'installateur télécharge la police [B612 Mono](https://github.com/polarsys/b612) (police des cockpits Airbus) si elle manque, et signale les commandes facultatives absentes (`curl`, `playerctl`, `nmcli`).
 
+### Second panneau : Proxmox et OPNsense
+
+Le profil `infra` affiche un second panneau à gauche du premier : CPU, RAM, températures, ventilateur, VM actives et mises à jour de Proxmox ; CPU, RAM et trafic WAN d'OPNsense.
+Les mesures sont lues en SSH avec une clé limitée à un script de lecture : mise en place dans [`serveurs/README.md`](serveurs/README.md).
+
 ### Personnaliser
 
 Chaque profil (`lua/profils/<machine>.lua`) ne contient que ce qui change par rapport à `lua/profils/defaut.lua`, qui décrit toutes les options : ordre et choix des sections, villes pour la météo, disques, couleurs, police.
@@ -51,6 +56,7 @@ Cartes réseau, capteurs et batteries sont détectés automatiquement à chaque 
 | `lua/lib/draw.lua` | dessin : textes, barres, titres de section |
 | `lua/lib/sections.lua` | contenu de chaque section |
 | `lua/conky-mcdu.conf` | modèle de la fenêtre Conky (position, taille) |
+| `serveurs/` | scripts de mesures pour Proxmox et OPNsense, et leur installateur |
 | `tests/apercu.lua` | simulateur : `lua tests/apercu.lua t14 apercu.svg` produit une image sans Conky |
 
 Sous GNOME en Wayland, Conky s'affiche via XWayland, comme les anciennes configurations.

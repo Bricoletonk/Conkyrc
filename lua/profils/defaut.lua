@@ -11,6 +11,12 @@ return {
     -- Agrandit tout le panneau (police, barres, largeur) : 1.2 = 20 % plus grand
     echelle = 1,
 
+    -- Panneau secondaire (ex. profil infra) : fenêtre, config et démarrage
+    -- automatique séparés, pour l'afficher à côté du panneau principal
+    secondaire = false,
+    -- Distance au bord droit de l'écran (pixels, après échelle)
+    decalage_x = 20,
+
     -- Largeur du panneau et marge dans la fenêtre Conky (pixels, avant échelle)
     largeur = 360,
     marge = 4,

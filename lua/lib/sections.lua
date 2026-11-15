@@ -221,6 +221,65 @@ function X.meteo(P, now)
     end
 end
 
+-- ---------------------------------------------------------------- Serveurs (second panneau)
+
+-- En-tête commun : renvoie les mesures, ou nil si le serveur ne répond pas
+local function server_head(title, key, cfg, now)
+    local T = D.T
+    D.title(title)
+    if not cfg or not cfg.hote then D.label("NON CONFIGURÉ DANS LE PROFIL", nil, T.amber); return nil end
+    local r = S.remote(key, cfg, now)
+    if r.etat ~= "ok" then
+        D.label(cfg.hote, nil, T.dim)
+        D.data(r.etat == "attente" and "EN ATTENTE" or "HORS LIGNE", nil, r.etat == "attente" and T.dim or T.amber)
+        return nil
+    end
+    D.label(U.upper(r.host or cfg.hote) .. (r.version and ("  " .. r.version) or ""),
+        "EN SERVICE " .. U.duration(r.uptime), T.white, T.cyan)
+    return r
+end
+
+local function server_cpu_mem(key, r, now)
+    local T = D.T
+    D.label("CPU" .. (r.cores and ("  " .. r.cores .. " CŒURS") or ""),
+        r.load and ("CHARGE " .. r.load) or nil, T.white, T.cyan)
+    D.bar(r.cpu, U.pct(r.cpu), D.level(r.cpu, 0.7, 0.9), { peak = U.peak(key .. "cpu", r.cpu, now) })
+    if r.mem_total and r.mem_total > 0 then
+        local f = (r.mem_used or 0) / r.mem_total
+        D.bar(f, U.pct(f), D.level(f, 0.80, 0.92), { label = "RAM" })
+        D.label(nil, U.bytes(r.mem_used) .. " / " .. U.bytes(r.mem_total), nil, T.dim)
+    end
+end
+
+function X.proxmox(P, now)
+    local T = D.T
+    local r = server_head("PROXMOX", "pve", P.proxmox, now)
+    if not r then return end
+    server_cpu_mem("pve", r, now)
+    if #r.temps > 0 then
+        local items = {}
+        for _, e in ipairs(r.temps) do
+            items[#items + 1] = { e.label, e.value / 100, e.value .. "°", D.level(e.value / 100, 0.70, 0.85) }
+        end
+        D.bars(items, P.colonnes_temp or 2)
+    end
+    if r.fan then D.kv("VENTILATEUR", r.fan > 0 and (math.floor(r.fan) .. " TR/MIN") or "ARRÊT", r.fan > 0 and T.green or T.cyan) end
+    D.label("VM ACTIVES", "CONTENEURS")
+    D.data(r.vm_run and (r.vm_run .. " / " .. r.vm_total) or DASH, r.ct_run and (r.ct_run .. " / " .. r.ct_total) or DASH)
+    local upd = tonumber(r.updates)
+    D.kv("MISES À JOUR", upd and tostring(upd) or DASH, (upd and upd > 0) and T.amber or T.green)
+end
+
+function X.opnsense(P, now)
+    local r = server_head("OPNSENSE", "opn", P.opnsense, now)
+    if not r then return end
+    server_cpu_mem("opn", r, now)
+    if r.rx then
+        D.label("TRAFIC WAN  " .. U.upper(r.wan or ""), nil, D.T.white)
+        rate_bars("opn", r.rx, r.tx, now)
+    end
+end
+
 -- ---------------------------------------------------------------- Horloge
 -- Comme dans un cockpit : heure UTC (« Zulu ») et heure locale
 

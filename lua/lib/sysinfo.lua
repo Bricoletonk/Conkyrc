@@ -407,8 +407,10 @@ function S.remote(key, cfg, now)
     if not A.dir then A.init() end
     local home = os.getenv("HOME") or ""
     local cle = (cfg.cle or "~/.ssh/mcdu_ed25519"):gsub("^~", home)
+    -- ServerAlive : une connexion partagée devenue muette (changement de réseau,
+    -- Tailscale coupé, veille) est abandonnée en ~10 s au lieu de bloquer les relevés
     local cmd = string.format(
-        "ssh -i '%s' -p %d -o IdentitiesOnly=yes -o IdentityAgent=none -o BatchMode=yes " ..
+        "timeout 20 ssh -i '%s' -p %d -o ServerAliveInterval=5 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o IdentityAgent=none -o BatchMode=yes " ..
         "-o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new " ..
         "-o ControlMaster=auto -o ControlPath='%s/ssh-%%C' -o ControlPersist=120 %s@%s mcdu",
         cle, cfg.port or 22, A.dir, cfg.utilisateur or "root", cfg.hote)

@@ -11,8 +11,9 @@ return {
     secondaire = true,
     -- Placé à gauche du panneau principal (largeur 440 + marges sur le T14)
     decalage_x = 480,
-    -- Hauteur de la fenêtre (avant échelle)
-    hauteur = 560,
+    -- Hauteur de la fenêtre (avant échelle) : assez pour quatre serveurs déployés
+    -- (860 × 1.2 = 1032 px, la hauteur maximale sous la barre de GNOME)
+    hauteur = 860,
 
     sections = { "opnsense", "proxmox", "hexos", "nasferatu" },
 

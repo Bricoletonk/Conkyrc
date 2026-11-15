@@ -3,7 +3,7 @@
 #  Prépare la lecture SNMP d'un NAS Synology pour le panneau « infra »
 #  À lancer sur le PC qui affiche le panneau (le T14).
 #
-#  Usage : serveurs/installer-snmp.sh nasferatu 192.168.30.10
+#  Usage : serveurs/installer-snmp.sh nasferatu 192.168.30.3
 #    (le nom doit être celui de la section dans lua/profils/infra.lua)
 #
 #  Sur le NAS, avant : Panneau de configuration → Terminal & SNMP → SNMP

@@ -50,8 +50,8 @@ apt install lm-sensors && sensors-detect --auto
 ## Tester à la main
 
 ```bash
-ssh -i ~/.ssh/mcdu_ed25519 root@192.168.3.2 mcdu
-ssh -i ~/.ssh/mcdu_ed25519 root@192.168.2.1 mcdu
+ssh -o IdentitiesOnly=yes -o IdentityAgent=none -i ~/.ssh/mcdu_ed25519 root@192.168.3.2 mcdu
+ssh -o IdentitiesOnly=yes -o IdentityAgent=none -i ~/.ssh/mcdu_ed25519 root@192.168.2.1 mcdu
 ```
 
 Chaque commande doit afficher des lignes `cpu=…`, `mem_used=…`, etc.

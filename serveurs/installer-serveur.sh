@@ -64,7 +64,7 @@ fi
 
 # --- 4. Test avec la clé dédiée
 echo "Test de la clé dédiée ($UTIL@$HOTE) :"
-OUT=$(ssh -i "$CLE" -o BatchMode=yes -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new "$UTIL@$HOTE" mcdu 2>&1) || true
+OUT=$(ssh -i "$CLE" -o IdentitiesOnly=yes -o IdentityAgent=none -o BatchMode=yes -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new "$UTIL@$HOTE" mcdu 2>&1) || true
 echo "$OUT" | head -8
 if echo "$OUT" | grep -q '^cpu='; then
     echo "OK : le panneau infra pourra lire ce serveur."

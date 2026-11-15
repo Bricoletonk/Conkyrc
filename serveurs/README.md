@@ -1,6 +1,6 @@
 # Panneau « infra » : Proxmox et OPNsense
 
-> **État** : scripts OPNsense et Proxmox à jour pour le nouveau panneau. HexOS et Nasferatu : à venir.
+> **État** : OPNsense, Proxmox et Nasferatu (Synology, SNMP) en place. HexOS : à venir.
 
 Un second panneau Conky MCDU affiche :
 
@@ -46,6 +46,17 @@ apt install lm-sensors && sensors-detect --auto
 - La clé s'ajoute dans l'interface web (System → Access → Users → root → Authorized keys) : OPNsense régénère `authorized_keys` à partir de sa configuration.
 - Après une mise à jour majeure d'OPNsense, vérifier que `/usr/local/bin/mcdu-opnsense.sh` existe toujours (sinon relancer l'installation).
 - Alternative sans SSH root : l'API d'OPNsense avec un utilisateur aux privilèges de lecture (non implémentée).
+
+### Nasferatu (Synology DSM) — SNMP
+
+Rien à installer sur le NAS : le panneau l'interroge en SNMPv3 (chiffré et authentifié) depuis le PC.
+
+1. Sur le NAS : Panneau de configuration → Terminal & SNMP → SNMP : activer le service, cocher **SNMPv3**
+   (utilisateur `mcdu`, authentification SHA, confidentialité AES), laisser SNMPv1/v2c décoché.
+2. Sur le PC : `sudo apt install snmp` puis `serveurs/installer-snmp.sh nasferatu 192.168.30.10`
+   (les identifiants vont dans `~/.config/conky/mcdu-snmp-nasferatu.conf`, lisible par toi seul).
+
+Mesures : CPU, RAM, température système et disques, état des volumes (RAID), alertes disque, ventilateurs, mise à jour DSM disponible.
 
 ## Tester à la main
 

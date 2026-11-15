@@ -36,8 +36,9 @@ return {
         type = "nas",
         titre = "NASFERATU",
         hote = "192.168.30.10",
-        utilisateur = "mcdu",
-        apps = "PAQUETS",
+        -- SNMP (rien à installer sur le NAS) ; identifiants dans
+        -- ~/.config/conky/mcdu-snmp-nasferatu.conf (serveurs/installer-snmp.sh)
+        methode = "snmp",
     },
     -- Options communes possibles dans proxmox = { } et opnsense = { } :
     --   port = 22, intervalle = 5 (secondes), cle = "~/.ssh/mcdu_ed25519"

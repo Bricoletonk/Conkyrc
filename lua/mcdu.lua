@@ -9,6 +9,7 @@
 -- ==========================================================
 
 local DIR = (debug.getinfo(1, "S").source:match("^@(.*)/[^/]*$")) or "."
+MCDU_DIR = DIR -- utilisé pour trouver les scripts fournis (lua/scripts/)
 package.path = DIR .. "/?.lua;" .. package.path
 
 -- Liaisons Cairo fournies par Conky (absentes dans le simulateur de test)

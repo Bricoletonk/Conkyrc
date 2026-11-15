@@ -214,7 +214,7 @@ function X.meteo(P, now)
         if w then
             local feels = (w.feels and w.feels ~= w.temp) and string.format("  RESS. %d°", w.feels) or ""
             D.data(string.format("%+d°C", w.temp) .. feels,
-                w.wind and (w.dir .. " " .. w.wind .. " KM/H") or nil)
+                w.wind and (w.dir .. " " .. string.format("%.1f", w.wind / 3.6) .. " M/S") or nil)
             if P.meteo_details then D.label((w.tmin and w.tmax) and string.format("MIN %d°  MAX %d°", w.tmin, w.tmax) or nil,
                 w.hum and ("HUMIDITÉ " .. w.hum .. "%") or nil, T.dim, T.dim) end
         end

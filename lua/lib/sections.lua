@@ -319,6 +319,12 @@ function X.proxmox(P, now)
         D.gap(2)
         D.minibars(items, 2)
     end
+    -- Pool ZFS dégradé sans stockage Proxmox du même nom : ligne rouge à part
+    local store_names = {}
+    for _, st in ipairs(r.store) do store_names[st[1]] = true end
+    for _, p in ipairs(r.pool) do
+        if p[2] ~= "ONLINE" and not store_names[p[1]] then D.kv("POOL " .. U.upper(p[1]), p[2], T.red) end
+    end
 
     -- Sauvegarde : ambre si plus vieille que 36 h, rouge si échec
     if r.backup then
@@ -340,7 +346,7 @@ function X.proxmox(P, now)
                 table.insert(items, run, { m[2], short(m[4]), T.white, T.green })
             else
                 off = off + 1
-                items[#items + 1] = { m[2], "OFF " .. short(m[4]), T.dim, T.dim }
+                items[#items + 1] = { m[2], (m[4] and m[4] >= 0) and ("OFF " .. short(m[4])) or "OFF", T.dim, T.dim }
             end
         end
     end

@@ -401,6 +401,7 @@ function X.nas(P, now, nom)
             bad or T.white, T.cyan)
         D.bar(f, U.pct(f), bad or D.level(f, 0.80, 0.92))
     end
+    if r.upgrade then D.kv("MISE À JOUR", "DISPONIBLE", T.amber) end
     if r.apps then D.kv(cfg.apps or "APPLICATIONS", tostring(r.apps):gsub("/", " / ") .. " ACTIVES", T.green) end
 end
 
@@ -560,6 +561,7 @@ function R.nas(P, now, nom)
         else t[#t + 1] = { U.upper(p[1]), U.pct(f), D.level(f, 0.80, 0.92) } end
     end
     if #r.smart > 0 then t[#t + 1] = { "SMART", U.upper(r.smart[1][1]), D.T.red } end
+    if r.upgrade then t[#t + 1] = { "", "MAJ", D.T.amber } end
     return t
 end
 

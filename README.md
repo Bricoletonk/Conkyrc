@@ -48,7 +48,7 @@ Le profil `infra` affiche un second panneau à gauche du premier :
 - **Proxmox** : CPU, RAM, températures, stockages, dernière sauvegarde, mises à jour, uptime de chaque VM et conteneur
 - **HexOS** (TrueNAS) et **Nasferatu** (Synology) : CPU et RAM, températures, pools, alertes SMART
 
-> En cours : les scripts de `serveurs/` ne fournissent pas encore toutes ces mesures (maquette validée, scripts à suivre).
+> En place : OPNsense, Proxmox, Nasferatu. HexOS : à venir. Installation : [`serveurs/README.md`](serveurs/README.md).
 
 Les mesures sont lues en SSH avec une clé limitée à un script de lecture : mise en place dans [`serveurs/README.md`](serveurs/README.md).
 

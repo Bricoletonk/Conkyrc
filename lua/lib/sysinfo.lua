@@ -412,6 +412,11 @@ function S.remote(key, cfg, now)
         "-o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new " ..
         "-o ControlMaster=auto -o ControlPath='%s/ssh-%%C' -o ControlPersist=120 %s@%s mcdu",
         cle, cfg.port or 22, A.dir, cfg.utilisateur or "root", cfg.hote)
+    -- NAS Synology : lecture SNMP depuis ce PC (options dans un fichier local, hors dépôt)
+    if cfg.methode == "snmp" then
+        local opts = (cfg.options or ("~/.config/conky/mcdu-snmp-" .. key .. ".conf")):gsub("^~", home)
+        cmd = string.format("sh '%s/scripts/mcdu-synology.sh' '%s' '%s'", MCDU_DIR or ".", cfg.hote, opts)
+    end
     local v = A.get(key, cmd, cfg.intervalle or 5, now)
     if v == nil then return { etat = "attente" } end
     -- Clés qui peuvent apparaître plusieurs fois : rangées dans des listes

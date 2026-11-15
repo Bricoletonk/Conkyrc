@@ -53,7 +53,7 @@ Rien à installer sur le NAS : le panneau l'interroge en SNMPv3 (chiffré et aut
 
 1. Sur le NAS : Panneau de configuration → Terminal & SNMP → SNMP : activer le service, cocher **SNMPv3**
    (utilisateur `mcdu`, authentification SHA, confidentialité AES), laisser SNMPv1/v2c décoché.
-2. Sur le PC : `sudo apt install snmp` puis `serveurs/installer-snmp.sh nasferatu 192.168.30.10`
+2. Sur le PC : `sudo apt install snmp` puis `serveurs/installer-snmp.sh nasferatu 192.168.30.3`
    (les identifiants vont dans `~/.config/conky/mcdu-snmp-nasferatu.conf`, lisible par toi seul).
 
 Mesures : CPU, RAM, température système et disques, état des volumes (RAID), alertes disque, ventilateurs, mise à jour DSM disponible.

@@ -35,7 +35,7 @@ return {
     nasferatu = {
         type = "nas",
         titre = "NASFERATU",
-        hote = "192.168.30.10",
+        hote = "192.168.30.3",
         -- SNMP (rien à installer sur le NAS) ; identifiants dans
         -- ~/.config/conky/mcdu-snmp-nasferatu.conf (serveurs/installer-snmp.sh)
         methode = "snmp",

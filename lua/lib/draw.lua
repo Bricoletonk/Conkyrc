@@ -49,9 +49,15 @@ function D.fit(txt, maxw, size, bold)
 end
 
 -- Texte à la position (x, ligne de base y) ; align = "l", "r" ou "c"
+-- Section repliée : on n'affiche que son titre. Le reste est « dessiné à blanc »
+-- (D.mute) pour repérer les alertes : texte rouge → 2, texte ambre → 1.
+D.mute, D.sev, D.hits = false, 0, {}
+
 function D.text(txt, x, y, size, color, align, bold)
     txt = tostring(txt or "")
     if txt == "" then return end
+    if color == D.T.red then D.sev = 2 elseif color == D.T.amber and D.sev < 1 then D.sev = 1 end
+    if D.mute then return end
     local w = D.width(txt, size, bold)
     if align == "r" then x = x - w elseif align == "c" then x = x - w / 2 end
     rgba(color)
@@ -60,12 +66,14 @@ function D.text(txt, x, y, size, color, align, bold)
 end
 
 local function rect(x, y, w, h, color)
+    if D.mute then return end
     rgba(color)
     cairo_rectangle(D.cr, x, y, w, h)
     cairo_fill(D.cr)
 end
 
 local function line(x1, y1, x2, y2, color, lw)
+    if D.mute then return end
     rgba(color)
     cairo_set_line_width(D.cr, lw or 1)
     cairo_move_to(D.cr, x1, y1)
@@ -102,15 +110,45 @@ function D.header(txt)
 end
 
 -- Titre de section :  ──── RÉSEAU ────
+-- Titre de section :  ──── RÉSEAU ──── −
+-- Le premier titre d'une section est cliquable (D.section défini par mcdu.lua) :
+-- − pour replier, + pour déployer. Replié, le titre prend la couleur de la
+-- pire alerte de la section (relevée à l'image précédente).
 function D.title(txt)
+    if D.mute then return end
     local T, s = D.T, D.T.size_title
     D.gap(4)
+    local y0 = D.y
+    local key = D.section
+    local mark_w = key and (D.width("+", s) + 8) or 0
     local tw = D.width(txt, s) + 14
     local cx, my = D.x + D.w / 2, D.y + s * 0.65
+    local col = T.white
+    if key and D.collapsed then
+        col = (D.prev_sev == 2 and T.red) or (D.prev_sev == 1 and T.amber) or T.white
+    end
     line(D.x, my, cx - tw / 2, my, T.dim)
-    line(cx + tw / 2, my, D.x + D.w, my, T.dim)
-    D.text(txt, cx, D.y + s, s, T.white, "c")
+    line(cx + tw / 2, my, D.x + D.w - mark_w, my, T.dim)
+    D.text(txt, cx, D.y + s, s, col, "c")
+    if key then
+        D.text(D.collapsed and "+" or "-", D.x + D.w, D.y + s, s, T.cyan, "r")
+        -- Zone sensible : le symbole (un peu élargie)
+        D.hits[#D.hits + 1] = { key = key, y0 = y0 - 2, y1 = D.y + s * 1.5,
+            x0 = D.x + D.w - mark_w - 4, x1 = D.x + D.w + T.padding }
+        -- Curseur posé sur le symbole : trait vert qui avance de la gauche vers le symbole
+        -- (le trait passe derrière le texte du titre sans le barrer)
+        if D.hover_key == key and D.hover_p and D.hover_p > 0 then
+            local xe = D.x + (D.w - mark_w) * math.min(1, D.hover_p)
+            line(D.x, my, math.min(xe, cx - tw / 2), my, T.green, 2)
+            if xe > cx + tw / 2 then line(cx + tw / 2, my, xe, my, T.green, 2) end
+        end
+        D.section = nil -- seul le premier titre de la section est cliquable
+    end
     D.y = D.y + s * 1.5
+    if key and D.collapsed then
+        D.title_end = D.y
+        D.mute = true
+    end
 end
 
 -- Ligne d'étiquettes (petite police) à gauche et à droite
@@ -186,6 +224,73 @@ function D.bars(items, cols)
         rect(x + lw, by, cw - lw - vw, h, T.track)
         rect(x + lw, by, (cw - lw - vw) * U.clamp(it[2]), h, it[4] or T.green)
         D.text(it[3], x + cw, D.y + s, s, it[4] or T.green, "r")
+        if c == cols - 1 or i == #items then D.y = D.y + lh end
+    end
+end
+
+-- Une ligne de couples étiquette/valeur : « CPU 54°  SSD 41° »
+-- items = { {label, valeur, couleur}, ... }
+-- (étiquette vide possible ; ce qui dépasse la largeur du panneau n'est pas affiché)
+function D.inline(items)
+    local T, s = D.T, D.T.size_big - 1
+    local x, xmax = D.x, D.x + D.w
+    local sp = D.width("  ", s)
+    for _, it in ipairs(items) do
+      if it[2] ~= nil and it[2] ~= "" then
+        local lab = (it[1] and it[1] ~= "") and (it[1] .. " ") or ""
+        local val = tostring(it[2] or "")
+        local w = D.width(lab, T.size_small) + D.width(val, s)
+        if x + w > xmax then
+            -- dernier élément trop long : on le raccourcit s'il reste de la place
+            local room = xmax - x - D.width(lab, T.size_small)
+            if room < s * 3 then break end
+            val = D.fit(val, room, s)
+        end
+        if lab ~= "" then D.text(lab, x, D.y + s, T.size_small, T.white) end
+        x = x + D.width(lab, T.size_small)
+        D.text(val, x, D.y + s, s, it[3] or T.green)
+        x = x + D.width(val, s) + sp
+        if x >= xmax then break end
+      end
+    end
+    D.y = D.y + s * 1.32
+end
+
+-- Petites barres étiquetées en colonnes (stockages secondaires)
+-- items = { {label, frac, valeur, couleur}, ... }
+function D.minibars(items, cols)
+    local T = D.T
+    local s = T.size_small * 0.9
+    local gap = T.padding
+    local cw = (D.w - gap * (cols - 1)) / cols
+    local lw, vw, h = cw * 0.40, s * 3.2, T.bar_thin + 1
+    local lh = s * 1.6
+    for i, it in ipairs(items) do
+        local c = (i - 1) % cols
+        local x = D.x + c * (cw + gap)
+        local by = D.y + (lh - h) / 2
+        D.text(D.fit(it[1], lw - 4, s), x, D.y + s, s, it[5] or T.white)
+        rect(x + lw, by, cw - lw - vw, h, T.track)
+        rect(x + lw, by, (cw - lw - vw) * U.clamp(it[2]), h, it[4] or T.green)
+        D.text(it[3], x + cw, D.y + s, s, it[4] or T.green, "r")
+        if c == cols - 1 or i == #items then D.y = D.y + lh end
+    end
+end
+
+-- Liste en colonnes : nom à gauche, valeur à droite
+-- items = { {nom, valeur, couleur_nom, couleur_valeur}, ... }
+function D.list(items, cols)
+    local T = D.T
+    local s = T.size_small
+    local gap = T.padding * 1.5
+    local cw = (D.w - gap * (cols - 1)) / cols
+    local lh = s * 1.45
+    for i, it in ipairs(items) do
+        local c = (i - 1) % cols
+        local x = D.x + c * (cw + gap)
+        local vwid = D.width(it[2], s)
+        D.text(D.fit(it[1], cw - vwid - 6, s), x, D.y + s, s, it[3] or T.white)
+        D.text(it[2], x + cw, D.y + s, s, it[4] or T.green, "r")
         if c == cols - 1 or i == #items then D.y = D.y + lh end
     end
 end

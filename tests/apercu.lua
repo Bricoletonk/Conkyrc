@@ -158,22 +158,72 @@ A.mock = empty and {} or {
     meteo1 = string.format(J, "3", "87", "Bruine l\\u00e9g\\u00e8re", "5", "SW", "9", "8", "2"),
     meteo2 = string.format(J, "11", "64", "Ensoleillé", "12", "NNE", "4", "14", "3"),
     nvidia = "",
-    -- sorties types des scripts serveurs/mcdu-pve.sh et mcdu-opnsense.sh
-    pve = "cpu=0.234\ncores=12\nmem_total=67430866944\nmem_used=41875931136\nload=2.31 1.98 1.75\n" ..
-        "uptime=3888000.12\nhost=pve\nversion=8.4.1\nvm=4/6\nct=3/5\nupdates=7\n" ..
-        "temp=CPU 54\ntemp=SSD 41\ntemp=SSD2 38\ntemp=CARTE 36\nfan=1450",
-    opn = "cpu=0.071\nwan=igb0.20\nrx=3120000\ntx=412000\ncores=4\nmem_total=8355315712\n" ..
-        "mem_used=1338507264\nload=0.22 0.18 0.15\nuptime=950000\nhost=fw\nversion=26.1.2",
+    -- sorties types des scripts serveurs/ (prototype)
+    pve = table.concat({ "cpu=0.234", "cores=12", "mem_total=67430866944", "mem_used=41875931136",
+        "uptime=3888000", "host=pve", "version=8.4.1", "updates=7",
+        "temp=CPU|54", "temp=SSD|41", "temp=SSD2|38", "temp=CARTE|36", "fan=1450",
+        "store=local|dir|28000000000|98000000000", "store=local-lvm|lvmthin|612000000000|850000000000",
+        "store=rpool|zfspool|1200000000000|1800000000000", "store=backup|pbs|2100000000000|4000000000000",
+        "pool=rpool|ONLINE",
+        "backup=" .. (os.time() - 16 * 3600) .. "|OK",
+        "vm=100|hexos|running|3887000", "vm=101|unifi|running|1036800", "vm=102|ha|running|432000",
+        "vm=103|win11|stopped|259200", "ct=200|pihole|running|3887500", "ct=201|nginx-proxy|running|86400",
+        "ct=202|grafana|running|7200", "ct=203|test-deb|stopped|1900000" }, "\n"),
+    opn = table.concat({ "cpu=0.071", "wan=igb0.20", "rx=3120000", "tx=412000", "cores=4",
+        "mem_total=8355315712", "mem_used=1338507264", "uptime=950000", "host=fw", "version=26.1.2",
+        "gw=12.4|0|ok", "ip_pub=85.27.100.134", "ts=on|7", "firmware=26.1.3" }, "\n"),
+    hexos = table.concat({ "cpu=0.042", "cores=4", "mem_total=33554432000", "mem_used=21474836480",
+        "uptime=3887900", "host=hexos", "version=TRUENAS 25.04",
+        "temp=CPU|47", "temp=HDD|36", "temp=HDD2|37", "temp=HDD3|35", "temp=HDD4|38",
+        "pool=tank|ONLINE|11800000000000|16000000000000", "pool=apps|ONLINE|180000000000|1000000000000",
+        "apps=8/9" }, "\n"),
+    nasferatu = table.concat({ "cpu=0.031", "cores=2", "mem_total=6442450944", "mem_used=1932735283",
+        "uptime=5184000", "host=nasferatu", "version=DSM 7.2.2",
+        "temp=SYS|41", "temp=HDD|38", "temp=HDD2|39",
+        "pool=volume1|ONLINE|5100000000000|7800000000000", "apps=12/14" }, "\n"),
 }
 if os.getenv("HORS_LIGNE") then A.mock.opn = "ssh: connect to host 192.168.2.1 port 22: No route to host" end
+if os.getenv("ALERTES") then -- pool dégradé, disque en alerte, sauvegarde ratée
+    A.mock.pve = A.mock.pve:gsub("pool=rpool|ONLINE", "pool=rpool|DEGRADED") .. "\nsmart=sdb|FAILED"
+    A.mock.pve = A.mock.pve:gsub("|OK", "|ERREUR")
+    A.mock.hexos = A.mock.hexos:gsub("pool=tank|ONLINE", "pool=tank|DEGRADED") .. "\nsmart=sdc|PRE-FAIL"
+end
 
 local P = mcdu_profile(profile)
+local D = require 'lib.draw'
+-- REPLIER="cpu,meteo" : simule un clic sur le titre de ces sections
+local to_fold = {}
+for n in (os.getenv("REPLIER") or ""):gmatch("[^,]+") do to_fold[n] = true end
 local h
 for k = 1, 4 do
     if not empty then frame_files(k, k == 2) end -- image 2 : pic de trafic → marqueur magenta
     svg = {}
     h = mcdu_render({}, P)
+    if k == 2 then
+        for _, hit in ipairs(D.hits) do
+            if to_fold[hit.key] then
+                assert(conky_mcdu_souris({ type = "button_down", button = "left", x = 50, y = hit.y0 + 4 }))
+            end
+        end
+    end
 end
+
+-- SURVOL=meteo : curseur immobile sur le symbole de cette section ;
+-- images toutes les 0,2 s, capture à mi-chargement puis après la bascule
+local hover_key = os.getenv("SURVOL")
+if hover_key then
+    local hit
+    for _, x in ipairs(D.hits) do if x.key == hover_key then hit = x end end
+    assert(hit, "section sans titre cliquable : " .. hover_key)
+    local t = 187344
+    local function at(dt) t = t + dt; put("/proc/uptime", string.format("%.2f 0", t)) end
+    at(0)
+    conky_mcdu_souris({ type = "mouse_move", x = hit.x0 + 4, y = hit.y0 + 6 })
+    for _ = 1, 2 do at(0.12); svg = {}; h = mcdu_render({}, P) end   -- ~0,24 s : trait à mi-course
+    if os.getenv("MI") then goto done end
+    for _ = 1, 3 do at(0.12); svg = {}; h = mcdu_render({}, P) end   -- > 0,5 s : bascule
+end
+::done::
 
 local W, H = P.largeur + 2 * P.marge + 40, math.floor(h + 2 * P.marge + 40)
 local f = assert(io.open(out, "w"))

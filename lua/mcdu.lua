@@ -50,13 +50,89 @@ function mcdu_profile(name)
         end
         P.largeur = math.floor(P.largeur * k + 0.5)
     end
+    P.nom = name
     profiles[name] = P
     return P
+end
+
+-- ---------------------------------------------------------------- Sections repliées
+-- Enregistrées dans ~/.config/conky/mcdu-replie-<profil>.txt (une section par ligne)
+-- pour survivre au redémarrage de Conky.
+
+local collapsed, collapsed_profile = {}, nil
+local function state_file(name) return (os.getenv("HOME") or "/tmp") .. "/.config/conky/mcdu-replie-" .. name .. ".txt" end
+
+local function load_state(name)
+    collapsed, collapsed_profile = {}, name
+    local f = io.open(state_file(name), "r")
+    if not f then return end
+    for l in f:lines() do if l ~= "" then collapsed[l] = true end end
+    f:close()
+end
+
+local function save_state()
+    local f = io.open(state_file(collapsed_profile), "w")
+    if not f then return end
+    for k in pairs(collapsed) do f:write(k, "\n") end
+    f:close()
+end
+
+-- Clic gauche sur un titre de section : replie ou déploie la section
+-- (accroché par la ligne lua_mouse_hook = 'mcdu_souris' de la config)
+-- Sous GNOME (XWayland), Conky ne reçoit pas les clics, seulement les déplacements.
+-- On replie donc au survol : curseur immobile sur le symbole - ou + pendant
+-- DWELL secondes ; un trait vert avance pendant l'attente.
+local DWELL = 0.5
+local hover -- { key, t0, done }
+
+local function toggle(key)
+    collapsed[key] = not collapsed[key] or nil
+    save_state()
+end
+
+local function hit_at(x, y)
+    if not x or not y then return nil end
+    for _, h in ipairs(D.hits) do
+        if y >= h.y0 and y <= h.y1 and x >= h.x0 and x <= h.x1 then return h.key end
+    end
+end
+
+-- Accroché par la ligne lua_mouse_hook = 'mcdu_souris' de la config
+function conky_mcdu_souris(ev)
+    if not collapsed_profile then return false end
+    if ev.type == "mouse_move" or ev.type == "mouse_enter" then
+        local key = hit_at(ev.x, ev.y)
+        if not key then hover = nil
+        elseif not hover or hover.key ~= key then hover = { key = key, t0 = U.now() } end
+        return false
+    end
+    if ev.type == "mouse_leave" then hover = nil; return false end
+    -- Clic direct, si un jour Conky le transmet
+    local left = ev.button == "left" or ev.button == 1 or ev.button_code == 1
+    if ev.type == "button_down" and left then
+        local key = hit_at(ev.x, ev.y)
+        if key then toggle(key); hover = nil; return true end
+    end
+    return false
+end
+
+-- Avance du survol, appelée à chaque image : bascule la section au bout de DWELL
+local function update_hover()
+    D.hover_key, D.hover_p = nil, nil
+    if not hover or hover.done then return end
+    local p = (U.now() - hover.t0) / DWELL
+    if p >= 1 then
+        toggle(hover.key)
+        hover.done = true -- pas de nouvelle bascule tant que le curseur n'a pas bougé
+    else
+        D.hover_key, D.hover_p = hover.key, p
+    end
 end
 
 -- ---------------------------------------------------------------- Rendu
 
 local last_h = 200
+local severity = {}
 
 function mcdu_render(cr, P)
     -- Décimales avec un point (1.8 GHZ), comme sur un écran de cockpit,
@@ -72,12 +148,30 @@ function mcdu_render(cr, P)
     D.start(cr, T, x + pad, y + pad, w - 2 * pad)
     D.panel(x, y, w, last_h)
 
+    if collapsed_profile ~= P.nom then load_state(P.nom) end
+    update_hover()
+    D.hits = {}
     D.header(U.upper(P.titre or S.hostname()))
     if P.erreur then D.label(P.erreur, nil, T.amber) end
     for _, name in ipairs(P.sections) do
         local f = X[name]
+        -- Une section absente mais décrite dans le profil avec type = "nas" utilise la section NAS
+        if not f and type(P[name]) == "table" and P[name].type == "nas" then f = X.nas end
         if f then
-            local ok, err = pcall(f, P, now)
+            D.section, D.collapsed, D.prev_sev = name, collapsed[name], severity[name] or 0
+            D.sev, D.title_end, D.mute = 0, nil, false
+            local ok, err = pcall(f, P, now, name)
+            D.mute, D.section = false, nil
+            if D.title_end then
+                -- Section repliée : une ligne de résumé sous le titre
+                D.y = D.title_end
+                local rf = X.resume[name] or (f == X.nas and X.resume.nas)
+                if rf then
+                    local ok2, items = pcall(rf, P, now, name)
+                    if ok2 and items and #items > 0 then D.inline(items) end
+                end
+            end
+            severity[name] = D.sev
             if not ok then D.label(U.upper(name) .. " : ERREUR", nil, T.red); print("conky-mcdu " .. name .. ": " .. tostring(err)) end
         else
             D.label("SECTION INCONNUE : " .. name, nil, T.amber)

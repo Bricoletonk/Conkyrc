@@ -1,5 +1,7 @@
 # Panneau « infra » : Proxmox et OPNsense
 
+> **En cours** : le panneau a été refait (maquette validée : OPNsense, Proxmox, HexOS, Nasferatu). Les scripts ci-dessous sont l'ancienne version et seront mis à jour pour fournir toutes les mesures du nouveau panneau. Attendre cette mise à jour avant d'installer.
+
 Un second panneau Conky MCDU affiche :
 
 - **Proxmox** : CPU, RAM, températures, ventilateur, VM et conteneurs actifs, mises à jour

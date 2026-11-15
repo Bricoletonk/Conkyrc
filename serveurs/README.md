@@ -1,6 +1,6 @@
 # Panneau « infra » : Proxmox et OPNsense
 
-> **État** : script OPNsense à jour pour le nouveau panneau. Proxmox, HexOS et Nasferatu : à venir.
+> **État** : scripts OPNsense et Proxmox à jour pour le nouveau panneau. HexOS et Nasferatu : à venir.
 
 Un second panneau Conky MCDU affiche :
 

@@ -395,7 +395,9 @@ playerctl metadata --format '{{playerName}}|{{status}}|{{position}}|{{mpris:leng
 end
 
 -- ---------------------------------------------------------------- Serveurs distants (SSH)
--- Le serveur n'accepte cette clé que pour lancer son script de mesures
+-- Le serveur n'accepte cette clé que pour lancer son script de mesures.
+-- IdentitiesOnly / IdentityAgent=none : SSH n'utilise QUE la clé dédiée, jamais
+-- les clés personnelles de l'agent SSH de la session (qui ouvriraient un shell).
 -- (voir serveurs/README.md). La connexion SSH reste ouverte 2 minutes
 -- entre deux relevés (ControlPersist) pour ne pas refaire la négociation.
 --
@@ -406,7 +408,8 @@ function S.remote(key, cfg, now)
     local home = os.getenv("HOME") or ""
     local cle = (cfg.cle or "~/.ssh/mcdu_ed25519"):gsub("^~", home)
     local cmd = string.format(
-        "ssh -i '%s' -p %d -o BatchMode=yes -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new " ..
+        "ssh -i '%s' -p %d -o IdentitiesOnly=yes -o IdentityAgent=none -o BatchMode=yes " ..
+        "-o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new " ..
         "-o ControlMaster=auto -o ControlPath='%s/ssh-%%C' -o ControlPersist=120 %s@%s mcdu",
         cle, cfg.port or 22, A.dir, cfg.utilisateur or "root", cfg.hote)
     local v = A.get(key, cmd, cfg.intervalle or 5, now)

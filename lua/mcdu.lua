@@ -168,7 +168,11 @@ function mcdu_render(cr, P)
                 local rf = X.resume[name] or (f == X.nas and X.resume.nas)
                 if rf then
                     local ok2, items = pcall(rf, P, now, name)
-                    if ok2 and items and #items > 0 then D.inline(items) end
+                    if ok2 and items and items.droite then
+                        D.data(items.gauche, items.droite, items.cg, items.cd)
+                    elseif ok2 and items and #items > 0 then
+                        D.inline(items)
+                    end
                 end
             end
             severity[name] = D.sev

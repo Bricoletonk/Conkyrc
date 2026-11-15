@@ -510,7 +510,9 @@ local function server_resume(key, cfg, now)
     if not cfg or not cfg.hote then return nil end
     local r = S.remote(key, cfg, now)
     if r.etat ~= "ok" then
-        return nil, { { "", r.etat == "attente" and "EN ATTENTE" or "HORS LIGNE", r.etat == "attente" and D.T.dim or D.T.amber } }
+        -- Adresse à gauche, état aligné à droite
+        return nil, { gauche = cfg.hote, droite = r.etat == "attente" and "EN ATTENTE" or "HORS LIGNE",
+            cg = D.T.dim, cd = r.etat == "attente" and D.T.dim or D.T.amber }
     end
     local mf = (r.mem_total and r.mem_total > 0) and (r.mem_used or 0) / r.mem_total or nil
     return r, { { "CPU", U.pct(r.cpu), D.level(r.cpu, 0.7, 0.9) }, { "RAM", U.pct(mf), D.level(mf, 0.80, 0.92) } }

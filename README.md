@@ -39,7 +39,7 @@ L'installateur télécharge la police [B612 Mono](https://github.com/polarsys/b6
 scripts/install-mcdu.sh t14+infra
 ```
 
-Les deux panneaux sont dessinés dans une seule fenêtre, au bord droit de l'**écran principal**. Le lanceur (`lua/scripts/mcdu-lancer.sh`) choisit l'échelle d'après la hauteur de cet écran : ×1,8 sur un 4K, ×1,2 sur l'écran du portable (réglable dans `~/.config/conky/mcdu-echelles.conf`, une ligne « hauteur_mini échelle »).
+Les deux panneaux sont dessinés dans une seule fenêtre, au bord droit de l'**écran principal**. Le lanceur (`lua/scripts/mcdu-lancer.sh`) suit la mise à l'échelle de GNOME : les panneaux ont la même taille que les autres fenêtres, sur le 4K à 150 % comme sur l'écran du portable. Pour les agrandir ou les réduire : un nombre dans `~/.config/conky/mcdu-echelle.conf` (1.2 par défaut, 1.0 plus petit, 1.4 plus grand).
 Les panneaux s'empilent l'un sous l'autre s'ils tiennent en hauteur, sinon ils se placent côte à côte ; la bascule se fait seule en repliant ou dépliant des sections.
 Au branchement ou au débranchement d'une station d'accueil, le panneau change d'écran et d'échelle tout seul (vérification toutes les 10 s).
 

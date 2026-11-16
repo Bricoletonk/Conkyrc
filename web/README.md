@@ -98,7 +98,7 @@ une section `[[source]]` par serveur, dans l'ordre d'affichage.
 ```bash
 journalctl -u mcdu-web -f                      # erreurs de connexion aux serveurs
 curl -s localhost:8080/api/etat | head -c 600  # mesures brutes
-sudo -u mcdu-web ssh -i /etc/mcdu-web/mcdu_ed25519 -o IdentitiesOnly=yes root@192.168.3.2 mcdu
+runuser -u mcdu-web -- ssh -i /etc/mcdu-web/mcdu_ed25519 -o IdentitiesOnly=yes root@192.168.3.2 mcdu
 ```
 
 Sous chaque serveur hors ligne, la page affiche la dernière erreur (clé refusée, délai dépassé...).

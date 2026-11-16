@@ -123,6 +123,7 @@ class Source:
         return m
 
     def boucle(self):
+        echecs = 0
         while True:
             debut = time.monotonic()
             try:
@@ -132,12 +133,20 @@ class Source:
                     for k in self.histo:
                         if isinstance(m.get(k), (int, float)):
                             self.histo[k] = (self.histo[k] + [m[k]])[-HISTO:]
+                if echecs:
+                    journal(f"{self.id} : de nouveau joignable")
+                echecs = 0
             except Exception as e:  # serveur éteint, réseau coupé, clé refusée...
+                echecs += 1
                 with self.verrou:
                     if not self.erreur:
                         journal(f"{self.id} : {e}")
                     self.erreur = str(e) or e.__class__.__name__
-            time.sleep(max(1, self.intervalle - (time.monotonic() - debut)))
+            # Après un échec, on espace les tentatives (15 s, 30 s, 1 min… jusqu'à 5 min) :
+            # des refus de clé SSH répétés toutes les 5 s ressemblent à une attaque par
+            # force brute, et font bannir le collecteur (CrowdSec, fail2ban).
+            attente = self.intervalle if not echecs else min(300, 15 * 2 ** (echecs - 1))
+            time.sleep(max(1, attente - (time.monotonic() - debut)))
 
     def etat(self):
         with self.verrou:

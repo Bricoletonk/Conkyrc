@@ -1,0 +1,110 @@
+/* ==========================================================
+   MCDU Web — mêmes codes couleur que le panneau Conky
+   blanc : étiquettes   vert : normal   cyan : secondaire / montant
+   ambre : avertissement   rouge : alerte   magenta : pic
+   ========================================================== */
+@font-face {
+  font-family: "B612 Mono";
+  src: url("fonts/B612Mono-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "B612 Mono";
+  src: url("fonts/B612Mono-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-display: swap;
+}
+
+:root {
+  --fond: #07090b;
+  --cadre: rgba(115, 122, 133, .55);
+  --piste: rgba(255, 255, 255, .10);
+  --w: #ededed;
+  --d: #737a85;
+  --g: #33f266;
+  --c: #4dd9ff;
+  --a: #ffad1a;
+  --r: #ff4d40;
+  --m: #ff66f2;
+  --rayon: 8px;
+  font-size: 15px;
+}
+
+* { box-sizing: border-box; }
+html { background: var(--fond); -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right))
+           max(14px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  color: var(--w);
+  font-family: "B612 Mono", ui-monospace, "DejaVu Sans Mono", Menlo, monospace;
+  line-height: 1.35;
+  letter-spacing: .02em;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.w { color: var(--w); } .d { color: var(--d); } .g { color: var(--g); }
+.c { color: var(--c); } .a { color: var(--a); } .r { color: var(--r); } .m { color: var(--m); }
+.petit { font-size: .82rem; }
+.gros { font-size: 1.45rem; font-weight: 700; }
+
+/* --- Cadres */
+#entete, .panneau {
+  border: 1px solid var(--cadre);
+  border-radius: var(--rayon);
+  padding: 8px 12px 10px;
+  background: #0a0c0f;
+}
+#entete { margin-bottom: 10px; }
+#panneaux {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(min(330px, 100%), 1fr));
+  align-items: start;
+}
+@media (max-width: 380px) { :root { font-size: 13.5px; } #panneaux { grid-template-columns: 1fr; } }
+
+.ligne { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; min-height: 1.35em; }
+.ligne > :last-child { text-align: right; }
+.ligne > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* --- Titres de section : repli par appui (le survol de Conky n'a pas de sens au doigt) */
+.titre {
+  display: flex; justify-content: space-between; align-items: center;
+  margin: 8px -4px 4px; padding: 3px 4px;
+  border-bottom: 1px solid var(--cadre);
+  font-weight: 700; cursor: pointer; border-radius: 4px;
+}
+.titre:first-child { margin-top: 0; }
+.titre:active { background: rgba(255, 255, 255, .06); }
+.titre .bascule { color: var(--d); font-weight: 400; padding-left: 12px; }
+.replie .corps { display: none; }
+.resume { display: none; }
+.replie .resume { display: flex; }
+
+.sous { margin-top: 6px; color: var(--d); font-size: .82rem; }
+
+/* --- Barres horizontales */
+.barre { display: grid; grid-template-columns: 2.6em minmax(0, 1fr) 6.2em; align-items: center; gap: 8px; min-height: 1.4em; }
+.barre .val { text-align: right; white-space: nowrap; }
+.piste { position: relative; height: 7px; background: var(--piste); border-radius: 2px; }
+.piste.fine { height: 4px; }
+.rempli { position: absolute; inset: 0 auto 0 0; border-radius: 2px; background: currentColor; transition: width .6s ease; }
+.pic { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: var(--m); }
+.grad { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(0, 0, 0, .55); }
+
+.mini { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 14px; margin-top: 4px; }
+.mini .piste { margin-top: 2px; }
+
+.puces { display: flex; flex-wrap: wrap; gap: 2px 14px; margin-top: 2px; }
+
+.vm { display: grid; grid-template-columns: repeat(auto-fill, minmax(13em, 1fr)); gap: 0 14px; }
+.vm > *, .mini > *, #panneaux > * { min-width: 0; }
+html, body { overflow-x: hidden; }
+
+/* --- Données périmées (liaison avec le collecteur perdue) */
+body.perime #panneaux { opacity: .55; filter: saturate(.5); }
+
+footer { margin-top: 10px; text-align: center; }

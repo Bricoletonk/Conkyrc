@@ -1,0 +1,61 @@
+# ==========================================================
+#  MCDU Web — configuration
+#  À copier dans /etc/mcdu-web/config.toml (fait par installer-web.sh)
+# ==========================================================
+
+[serveur]
+titre = "INFRASTRUCTURE"
+# 0.0.0.0 = toutes les interfaces. Pour n'écouter que Tailscale avec
+# « tailscale serve » (HTTPS), mettre 127.0.0.1.
+adresse = "0.0.0.0"
+port = 8080
+# Clé dédiée, limitée au script de mesures sur chaque serveur
+# (la même que celle du panneau Conky : serveurs/README.md)
+cle_ssh = "/etc/mcdu-web/mcdu_ed25519"
+
+[meteo]
+villes = ["Bruxelles"]
+intervalle = 1800          # secondes (wttr.in)
+
+# ---------------------------------------------------------- Sources
+# Une section [[source]] par serveur, dans l'ordre d'affichage.
+#   type = "ssh"   : lance le script de mesures du serveur (serveurs/mcdu-*.sh)
+#   type = "snmp"  : NAS Synology, sans rien installer dessus (mcdu-synology.sh)
+#   type = "local" : la machine qui fait tourner MCDU Web
+# Options communes : intervalle = 5 (s), port = 22, cle = "..."
+
+[[source]]
+nom = "opnsense"
+titre = "OPNSENSE"
+type = "ssh"
+hote = "192.168.2.1"
+utilisateur = "root"
+
+[[source]]
+nom = "proxmox"
+titre = "PROXMOX"
+type = "ssh"
+hote = "192.168.3.2"
+utilisateur = "root"
+
+[[source]]
+nom = "nasferatu"
+titre = "NASFERATU"
+type = "snmp"
+hote = "192.168.30.3"
+intervalle = 15
+# Options SNMPv3 (lisible par l'utilisateur mcdu-web seulement)
+options = "/etc/mcdu-web/snmp-nasferatu.conf"
+
+# [[source]]
+# nom = "hexos"
+# titre = "HEXOS"
+# type = "ssh"
+# hote = "192.168.30.11"
+# utilisateur = "mcdu"
+
+[[source]]
+nom = "collecteur"
+titre = "MCDU WEB"
+type = "local"
+intervalle = 10

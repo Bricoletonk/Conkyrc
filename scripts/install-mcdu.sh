@@ -9,6 +9,9 @@
 #
 #  HAUTEUR=1100 scripts/install-mcdu.sh t14   → fenêtre plus haute si le panneau est coupé
 #  scripts/install-mcdu.sh infra              → second panneau (Proxmox, OPNsense)
+#  scripts/install-mcdu.sh t14+infra          → les deux panneaux dans une seule fenêtre,
+#      sur l'écran principal, échelle et position choisies automatiquement
+#      (lua/scripts/mcdu-lancer.sh) ; se replace seul au branchement d'une station d'accueil
 #
 #  - vérifie que Conky gère Lua + Cairo
 #  - installe la police B612 Mono (police des cockpits Airbus) si elle manque
@@ -24,17 +27,21 @@ REMPLACER=0
 for a in "$@"; do
     case "$a" in
         --remplacer) REMPLACER=1 ;;
-        -h|--help) sed -n '3,17p' "$0" | sed -E 's/^# ?//'; exit 0 ;;
+        -h|--help) sed -n '3,20p' "$0" | sed -E 's/^# ?//'; exit 0 ;;
         *) PROFIL="$(basename "${a%.lua}")" ;;
     esac
 done
 
-if [ ! -f "$REPO_DIR/lua/profils/$PROFIL.lua" ]; then
-    echo "Profil inconnu : $PROFIL" >&2
-    echo "Profils disponibles :" >&2
-    ls "$REPO_DIR/lua/profils" | sed 's/\.lua$//; s/^/  /' >&2
-    exit 1
-fi
+for p in $(echo "$PROFIL" | tr '+' ' '); do
+    if [ ! -f "$REPO_DIR/lua/profils/$p.lua" ]; then
+        echo "Profil inconnu : $p" >&2
+        echo "Profils disponibles :" >&2
+        ls "$REPO_DIR/lua/profils" | sed 's/\.lua$//; s/^/  /' >&2
+        exit 1
+    fi
+done
+MULTI=0
+case "$PROFIL" in *+*) MULTI=1 ;; esac
 
 # --- Conky avec Lua et Cairo -------------------------------------------
 if ! command -v conky >/dev/null 2>&1; then
@@ -78,7 +85,9 @@ command -v nmcli >/dev/null 2>&1     || command -v iwgetid >/dev/null 2>&1 || ma
 # --- Copie du moteur et création de la config --------------------------
 DEST="$HOME/.config/conky/mcdu"
 # Un panneau secondaire (secondaire = true) a sa propre config et son propre démarrage
-if grep -qE '^\s*secondaire\s*=\s*true' "$REPO_DIR/lua/profils/$PROFIL.lua"; then
+if [ "$MULTI" = 1 ]; then
+    NOM="mcdu-ecran"   # config écrite par le lanceur
+elif grep -qE '^\s*secondaire\s*=\s*true' "$REPO_DIR/lua/profils/$PROFIL.lua"; then
     NOM="mcdu-$PROFIL"
     REMPLACER=0  # ne jamais couper le panneau principal
 else
@@ -88,8 +97,8 @@ CONF="$HOME/.config/conky/$NOM.conf"
 AUTOSTART="$HOME/.config/autostart/conky-$NOM.desktop"
 rm -rf "$DEST"
 mkdir -p "$DEST"
-cp -r "$REPO_DIR/lua/." "$DEST/"
-rm -f "$DEST/conky-mcdu.conf"
+cp -r "$REPO_DIR/lua/." "$DEST/"   # le modèle conky-mcdu.conf sert aussi au lanceur
+chmod +x "$DEST"/scripts/*.sh
 
 # Largeur de la fenêtre = largeur du panneau × échelle + 2 × marge
 # (valeur du profil, sinon celle de defaut.lua)
@@ -105,10 +114,17 @@ LARGEUR=$(awk -v l="$(option largeur 360)" -v k="$ECHELLE" 'BEGIN { printf "%d",
 HAUTEUR="${HAUTEUR:-$(awk -v h="$(option hauteur 1000)" -v k="$ECHELLE" 'BEGIN { h = h * k; if (h > 1035) h = 1035; printf "%d", h }')}"
 GAPX=$(option decalage_x 20)
 
-sed -e "s|@DIR@|$DEST|" -e "s|@PROFIL@|$PROFIL|" \
-    -e "s|@LARGEUR@|$LARGEUR|g" -e "s|@HAUTEUR@|$HAUTEUR|" -e "s|@GAPX@|$GAPX|" \
-    "$REPO_DIR/lua/conky-mcdu.conf" > "$CONF"
-echo "Profil « $PROFIL » installé : $CONF"
+if [ "$MULTI" = 1 ]; then
+    LANCER="$DEST/scripts/mcdu-lancer.sh $PROFIL"
+    echo "Panneaux « $PROFIL » installés (fenêtre unique, écran principal détecté au lancement)"
+else
+    sed -e "s|@DIR@|$DEST|" -e "s|@PROFIL@|$PROFIL|" \
+        -e "s|@LARGEUR@|$LARGEUR|g" -e "s|@HAUTEUR@|$HAUTEUR|" -e "s|@GAPX@|$GAPX|" \
+        -e "s|@GAPY@|45|" -e "s|@XINERAMA@||" \
+        "$REPO_DIR/lua/conky-mcdu.conf" > "$CONF"
+    LANCER="conky -d -c '$CONF'"
+    echo "Profil « $PROFIL » installé : $CONF"
+fi
 
 # --- Démarrage automatique ---------------------------------------------
 mkdir -p ~/.config/autostart
@@ -117,7 +133,7 @@ cat > "$AUTOSTART" <<EOF
 Type=Application
 Name=Conky MCDU ($PROFIL)
 Comment=Moniteur système sur le bureau (version Lua)
-Exec=sh -c "sleep 10 && conky -d -c '$CONF'"
+Exec=sh -c "sleep 10 && $LANCER"
 X-GNOME-Autostart-enabled=true
 Hidden=false
 EOF
@@ -131,15 +147,31 @@ elif [ -f "$OLD" ] && [ "$NOM" = "mcdu" ]; then
     echo "L'ancien Conky démarre toujours aussi. Pour ne garder que le nouveau : relancer avec --remplacer"
 fi
 
+# Fenêtre unique : les panneaux installés séparément auparavant ne démarrent plus
+if [ "$MULTI" = 1 ]; then
+    for f in ~/.config/autostart/conky-mcdu.desktop ~/.config/autostart/conky-mcdu-*.desktop; do
+        [ -f "$f" ] && [ "$f" != "$AUTOSTART" ] || continue
+        if grep -q '^Hidden=' "$f"; then sed -i 's/^Hidden=.*/Hidden=true/' "$f"; else echo "Hidden=true" >> "$f"; fi
+        echo "Désactivé : $f (remplacé par la fenêtre unique)"
+    done
+fi
+
 # --- Relance, seulement dans une session graphique ---------------------
 if [ -n "$DISPLAY$WAYLAND_DISPLAY" ]; then
     # --remplacer : ferme aussi l'ancien Conky (tout Conky qui n'est pas un panneau MCDU)
     if [ "$REMPLACER" = 1 ]; then
         for p in $(pgrep -x conky); do grep -q mcdu "/proc/$p/cmdline" 2>/dev/null || kill "$p"; done
     fi
-    pkill -f "conky.*/$NOM.conf" 2>/dev/null || true
-    sleep 1
-    nohup conky -c "$CONF" >/dev/null 2>&1 &
+    if [ "$MULTI" = 1 ]; then
+        # ferme les panneaux séparés (mcdu.conf, mcdu-infra.conf…) et lance la fenêtre unique
+        pkill -f "conky.*/mcdu(-[a-z0-9]+)?\.conf" 2>/dev/null || true
+        sh $LANCER
+        CONF="$HOME/.config/conky/mcdu-ecran.conf"
+    else
+        pkill -f "conky.*/$NOM.conf" 2>/dev/null || true
+        sleep 1
+        nohup conky -c "$CONF" >/dev/null 2>&1 &
+    fi
     echo "Conky MCDU lancé."
     echo "Rien à l'écran ? Lancer « conky -c $CONF » dans un terminal pour voir les messages."
 else

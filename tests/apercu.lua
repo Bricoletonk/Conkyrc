@@ -189,7 +189,16 @@ if os.getenv("ALERTES") then -- pool dégradé, disque en alerte, sauvegarde rat
     A.mock.hexos = A.mock.hexos:gsub("pool=tank|ONLINE", "pool=tank|DEGRADED") .. "\nsmart=sdc|PRE-FAIL"
 end
 
-local P = mcdu_profile(profile)
+-- Plusieurs profils (« t14+infra ») : fenêtre unique, comme avec le lanceur.
+-- ECHELLE, LARGEUR et HAUTEUR (fenêtre) se règlent par variables d'environnement.
+local multi = {}
+for n in profile:gmatch("[^+]+") do multi[#multi + 1] = mcdu_profile(n, os.getenv("ECHELLE")) end
+local P = multi[1]
+local WIN_W, WIN_H = tonumber(os.getenv("LARGEUR") or "1333"), tonumber(os.getenv("HAUTEUR") or "2065")
+local function DRAW()
+    if #multi > 1 then mcdu_frame({}, multi, WIN_W, WIN_H); return WIN_H end
+    return mcdu_render({}, P)
+end
 local D = require 'lib.draw'
 -- REPLIER="cpu,meteo" : simule un clic sur le titre de ces sections
 local to_fold = {}
@@ -198,7 +207,7 @@ local h
 for k = 1, 4 do
     if not empty then frame_files(k, k == 2) end -- image 2 : pic de trafic → marqueur magenta
     svg = {}
-    h = mcdu_render({}, P)
+    h = DRAW()
     if k == 2 then
         for _, hit in ipairs(D.hits) do
             if to_fold[hit.key] then
@@ -219,13 +228,14 @@ if hover_key then
     local function at(dt) t = t + dt; put("/proc/uptime", string.format("%.2f 0", t)) end
     at(0)
     conky_mcdu_souris({ type = "mouse_move", x = hit.x0 + 4, y = hit.y0 + 6 })
-    for _ = 1, 2 do at(0.12); svg = {}; h = mcdu_render({}, P) end   -- ~0,24 s : trait à mi-course
+    for _ = 1, 2 do at(0.12); svg = {}; h = DRAW() end   -- ~0,24 s : trait à mi-course
     if os.getenv("MI") then goto done end
-    for _ = 1, 3 do at(0.12); svg = {}; h = mcdu_render({}, P) end   -- > 0,5 s : bascule
+    for _ = 1, 3 do at(0.12); svg = {}; h = DRAW() end   -- > 0,5 s : bascule
 end
 ::done::
 
 local W, H = P.largeur + 2 * P.marge + 40, math.floor(h + 2 * P.marge + 40)
+if #multi > 1 then W, H = WIN_W + 40, WIN_H + 40 end
 local f = assert(io.open(out, "w"))
 f:write(string.format('<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d">', W, H))
 f:write('<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2b3a55"/><stop offset="1" stop-color="#0d1320"/></linearGradient></defs>')

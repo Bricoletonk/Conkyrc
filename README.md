@@ -33,6 +33,16 @@ git clone https://github.com/Bricoletonk/Conkyrc.git ~/Conkyrc
 Profils fournis : `t14`, `x250`, `thinkcentre`, `principal`, `tspcr32`, `defaut`.
 L'installateur télécharge la police [B612 Mono](https://github.com/polarsys/b612) (police des cockpits Airbus) si elle manque, et signale les commandes facultatives absentes (`curl`, `playerctl`, `nmcli`).
 
+### Plusieurs écrans : une seule fenêtre
+
+```bash
+scripts/install-mcdu.sh t14+infra
+```
+
+Les deux panneaux sont dessinés dans une seule fenêtre, au bord droit de l'**écran principal**. Le lanceur (`lua/scripts/mcdu-lancer.sh`) choisit l'échelle d'après la hauteur de cet écran : ×1,8 sur un 4K, ×1,2 sur l'écran du portable (réglable dans `~/.config/conky/mcdu-echelles.conf`, une ligne « hauteur_mini échelle »).
+Les panneaux s'empilent l'un sous l'autre s'ils tiennent en hauteur, sinon ils se placent côte à côte ; la bascule se fait seule en repliant ou dépliant des sections.
+Au branchement ou au débranchement d'une station d'accueil, le panneau change d'écran et d'échelle tout seul (vérification toutes les 10 s).
+
 ### Replier une section
 
 Laisser le curseur immobile sur le `-` à droite d'un titre de section : un trait vert part de la gauche et, en 0,5 s, la section se replie (le `-` devient `+`). Même geste sur le `+` pour la déployer.

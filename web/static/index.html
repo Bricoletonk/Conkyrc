@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07090b">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MCDU">
+<title>MCDU</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icone.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icone-180.png">
+<link rel="stylesheet" href="mcdu.css">
+</head>
+<body>
+<header id="entete">
+  <div class="ligne">
+    <span id="titre" class="w">MCDU</span>
+    <span id="liaison" class="d">EN ATTENTE</span>
+  </div>
+  <div class="ligne">
+    <span id="heure" class="g gros">--:--:--</span>
+    <span id="utc" class="c">UTC --:--</span>
+  </div>
+  <div class="ligne petit">
+    <span id="date" class="d"></span>
+    <span id="maj" class="d"></span>
+  </div>
+</header>
+<main id="panneaux"></main>
+<footer class="d petit" id="pied"></footer>
+<script src="mcdu.js"></script>
+</body>
+</html>

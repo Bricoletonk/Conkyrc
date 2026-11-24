@@ -1,0 +1,24 @@
+[Unit]
+Description=MCDU Web : panneau MCDU dans le navigateur
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mcdu-web
+Group=mcdu-web
+ExecStart=/usr/bin/python3 /opt/mcdu-web/mcdu_web.py /etc/mcdu-web/config.toml
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+# Le programme ne fait que lire : on lui retire tout le reste
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+# known_hosts des serveurs interrogés (accept-new à la première connexion)
+StateDirectory=mcdu-web
+Environment=HOME=/var/lib/mcdu-web
+
+[Install]
+WantedBy=multi-user.target

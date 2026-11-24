@@ -62,6 +62,10 @@ Le profil `infra` affiche un second panneau à gauche du premier :
 
 Les mesures sont lues en SSH avec une clé limitée à un script de lecture : mise en place dans [`serveurs/README.md`](serveurs/README.md).
 
+### Sur le téléphone : MCDU Web
+
+Le même panneau infra dans un navigateur, installable comme une appli sur le téléphone, servi par un petit conteneur sur Proxmox et joignable via Tailscale : [`web/README.md`](web/README.md).
+
 ### Personnaliser
 
 Chaque profil (`lua/profils/<machine>.lua`) ne contient que ce qui change par rapport à `lua/profils/defaut.lua`, qui décrit toutes les options : ordre et choix des sections, villes pour la météo, disques, couleurs, police.

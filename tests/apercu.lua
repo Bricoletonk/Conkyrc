@@ -151,7 +151,7 @@ A.mock = empty and {} or {
     pubip = "85.27.100.134",
     df = "     1B-blocks        Used Mounted on\n510770802688 287193022464 /\n" ..
         "1000202039296 912184672256 /media/bricole/Data Laptop\n536870912 6291456 /boot/efi",
-    tailscale = "IP 100.101.12.7\n100.101.12.7  t14  bricole@  linux  -\n" ..
+    tailscale = "IP 100.101.12.7\nROUTES 3\n100.101.12.7  t14  bricole@  linux  -\n" ..
         "100.88.1.2  nas  bricole@  linux  active; exit node; direct 192.168.1.10:41641, tx 1 rx 2\n" ..
         "100.88.1.3  pi  bricole@  linux  idle; offers exit node",
     media = "audacious|Playing|83000000|245000000|Daft Punk|Veridis Quo",

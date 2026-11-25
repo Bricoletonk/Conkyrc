@@ -12,6 +12,8 @@
 #    conky-sensors.sh fan      → "2900 rpm" / "arrêt" / "n/d"
 #    conky-sensors.sh ts       → "on" si Tailscale est connecté, sinon "off"
 #    conky-sensors.sh tsexit   → nom du nœud de sortie Tailscale, ou "aucun"
+#    conky-sensors.sh tsroutes → "tailscale" si les réseaux de la maison passent par Tailscale
+#                                (accept-routes actif), sinon "direct"
 #    conky-sensors.sh updates  → nombre de mises à jour (apt, pamac ou checkupdates)
 #    conky-sensors.sh reboot   → "oui" si un redémarrage est requis
 #    conky-sensors.sh diag     → liste tous les capteurs (pour dépannage)
@@ -103,6 +105,17 @@ ts() {
     ts_json | grep -q '"BackendState": *"Running"' && echo on || echo off
 }
 
+# accept-routes actif : Tailscale range les réseaux privés annoncés par le routeur
+# dans sa table de routage 52 ; le trafic vers la maison passe alors par le tunnel.
+# Lisible sans droits root (contrairement à « tailscale debug prefs »).
+tsroutes() {
+    if ip route show table 52 2>/dev/null | grep -qE '^(10|172\.(1[6-9]|2[0-9]|3[01])|192\.168)\.'; then
+        echo tailscale
+    else
+        echo direct
+    fi
+}
+
 tsexit() {
     local json
     json=$(ts_json) || { echo "aucun"; return; }
@@ -153,12 +166,12 @@ diag() {
     done
     echo "== /proc/acpi/ibm/fan"; cat /proc/acpi/ibm/fan 2>&1 | head -3
     echo "== interfaces réseau"; ip -br addr
-    echo "== tailscale : $(ts) / sortie : $(tsexit)"
+    echo "== tailscale : $(ts) / sortie : $(tsexit) / routes maison : $(tsroutes)"
     echo "== conky : $(conky --version 2>/dev/null | head -1)"
 }
 
 case "$1" in
-    temps|fan|ts|tsexit|updates|diag) "$1" ;;
+    temps|fan|ts|tsexit|tsroutes|updates|diag) "$1" ;;
     reboot) reboot_needed ;;
-    *) echo "Usage : $0 {temps|fan|ts|tsexit|updates|reboot|diag}" >&2; exit 1 ;;
+    *) echo "Usage : $0 {temps|fan|ts|tsexit|tsroutes|updates|reboot|diag}" >&2; exit 1 ;;
 esac

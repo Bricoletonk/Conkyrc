@@ -320,11 +320,16 @@ function S.tailscale(now)
     local v = A.get("tailscale", [[
 command -v tailscale >/dev/null 2>&1 || exit 0
 echo "IP $(tailscale ip -4 2>/dev/null | head -1)"
+echo "ROUTES $(ip route show table 52 2>/dev/null | grep -cE '^(10|172\.(1[6-9]|2[0-9]|3[01])|192\.168)\.')"
 tailscale status 2>/dev/null]], 10, now)
     if not v then return nil end
     local ip = v:match("IP (%d+%.%d+%.%d+%.%d+)")
     if not ip or v:find("stopped") or v:find("Logged out") then return nil end
     local r = { ip = ip }
+    -- accept-routes actif : Tailscale installe dans sa table de routage (52) les
+    -- réseaux privés annoncés par le routeur ; le trafic vers la maison passe alors par le tunnel.
+    -- Lisible sans droits root, contrairement à « tailscale debug prefs ».
+    r.routes = tonumber(v:match("ROUTES (%d+)") or "0") > 0
     for l in v:gmatch("[^\n]+") do
         -- "100.x.y.z  noeud  user@  linux  active; exit node; direct ..."
         if l:find("; exit node", 1, true) then r.exit = l:match("^%S+%s+(%S+)") end

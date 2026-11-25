@@ -18,11 +18,11 @@ local function logfrac(b)
 end
 local NET_TICKS = { 0.2, 0.4, 0.6, 0.8 }
 
-local function rate_bars(key, rx, tx, now)
+local function rate_bars(key, rx, tx, now, color)
     local T = D.T
-    D.bar(logfrac(rx), U.bytes(rx) .. "/S", T.green,
+    D.bar(logfrac(rx), U.bytes(rx) .. "/S", color or T.green,
         { label = "DL", ticks = NET_TICKS, peak = logfrac(U.peak(key .. "rx", rx, now)) })
-    D.bar(logfrac(tx), U.bytes(tx) .. "/S", T.cyan,
+    D.bar(logfrac(tx), U.bytes(tx) .. "/S", color or T.cyan,
         { label = "UP", ticks = NET_TICKS, peak = logfrac(U.peak(key .. "tx", tx, now)) })
 end
 
@@ -173,7 +173,10 @@ function X.vpn(P, now)
     D.title("TAILSCALE")
     D.label("ADRESSE", "NŒUD DE SORTIE")
     D.data(t.ip, t.exit and U.upper(t.exit) or "AUCUN", T.green, t.exit and T.magenta or T.dim)
-    rate_bars("tailscale0", t.rx, t.tx, now)
+    -- Routes acceptées (hors de la maison) : le trafic vers les réseaux de la maison
+    -- passe par Tailscale → ligne et barres en rouge ; à la maison : accès direct par le LAN
+    D.kv("ROUTES MAISON", t.routes and "PAR TAILSCALE" or "DIRECT", t.routes and T.red or T.green)
+    rate_bars("tailscale0", t.rx, t.tx, now, t.routes and T.red or nil)
 end
 
 -- ---------------------------------------------------------------- SSH
@@ -486,7 +489,8 @@ end
 function R.vpn(P, now)
     local t = S.tailscale(now)
     if not t then return nil end
-    return { { "", t.ip }, { "SORTIE", t.exit and U.upper(t.exit) or "AUCUN", t.exit and D.T.magenta or D.T.dim } }
+    return { { "", t.ip }, { "SORTIE", t.exit and U.upper(t.exit) or "AUCUN", t.exit and D.T.magenta or D.T.dim },
+        { "ROUTES", t.routes and "TAILSCALE" or "DIRECT", t.routes and D.T.red or D.T.green } }
 end
 
 function R.lecture(P, now)

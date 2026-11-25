@@ -66,8 +66,11 @@ ${if_up @IFACE@}${color1}IP: ${color2}${addr @IFACE@}${goto 200}${color1}DL:${co
 ${color2}${downspeedgraph @IFACE@ 30,360 ffa700 008744 s}
 ${endif}${if_match "${execi 5 ~/.config/conky/conky-sensors.sh ts}" == "on"}${color3}Tailscale: ${color2}${addr tailscale0}${goto 200}${color1}DL:${color2} ${downspeed tailscale0}/s ${goto 295}${color1}UP: ${alignr}${color3} ${upspeed tailscale0}/s
 ${color1}Nœud de sortie: ${color3}${execi 10 ~/.config/conky/conky-sensors.sh tsexit}
+${if_match "${execi 10 ~/.config/conky/conky-sensors.sh tsroutes}" == "tailscale"}${color1}Routes maison: ${alignr}${color3}PAR TAILSCALE
 ${color3}${downspeedgraph tailscale0 30,360 ff6b6b 8b0000 s}
-${endif}
+${else}${color1}Routes maison: ${alignr}${color2}DIRECT
+${color2}${downspeedgraph tailscale0 30,360 ffa700 008744 s}
+${endif}${endif}
 ${color1}Météo: ${font monospace:size=10}
 ${color2}${texeci 3600 curl -s --max-time 10 'wttr.in/Bruxelles?qT0&lang=fr' | head -7}
 
